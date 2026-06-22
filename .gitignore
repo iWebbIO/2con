@@ -1,0 +1,25 @@
+# Rust build artifacts
+/target/
+
+# Local databases and runtime directories
+*.db
+/active_config.json
+/.twocon/
+
+# Executables
+*.exe
+*.dll
+*.so
+*.dylib
+xray
+sing-box
+
+# IDEs & Editor configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local Log Files
+*.log

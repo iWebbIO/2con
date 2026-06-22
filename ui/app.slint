@@ -1,0 +1,280 @@
+import { HomeScreen } from "screens/home.slint";
+import { ProfilesScreen, ProfileUiItem } from "screens/profiles.slint";
+import { ProxiesScreen, ProxyUiItem } from "screens/proxies.slint";
+import { SettingsScreen } from "screens/settings.slint";
+import { LogsScreen } from "screens/logs.slint";
+import { AboutScreen } from "screens/about.slint";
+
+export { ProfileUiItem, ProxyUiItem }
+
+export component AppWindow inherits Window {
+    title: "2con Desktop Proxy Client";
+    width: 900px;
+    height: 620px;
+    background: #171821;
+
+    // Global Properties
+    in-out property <int> active-page-index: 0;
+
+    // Home Properties
+    in-out property <string> connection-status: "Disconnected";
+    in-out property <string> active-profile: "No Profile Selected";
+    in-out property <string> download-speed: "0 KB/s";
+    in-out property <string> upload-speed: "0 KB/s";
+    in-out property <string> total-download: "0 MB";
+    in-out property <string> total-upload: "0 MB";
+    in-out property <bool> is-connected: false;
+    in-out property <bool> is-connecting: false;
+
+    // Profiles Properties
+    in-out property <[ProfileUiItem]> profiles: [];
+
+    // Proxies Properties
+    in-out property <[ProxyUiItem]> proxies: [];
+
+    // Settings Properties
+    in-out property <string> core-type: "sing-box";
+    in-out property <bool> system-proxy-enabled: false;
+    in-out property <bool> tun-enabled: false;
+    in-out property <int> socks-port: 20808;
+    in-out property <int> http-port: 20809;
+    in-out property <string> dns-server: "8.8.8.8";
+    in-out property <string> routing-preset: "Bypass LAN & China";
+
+    // Logs
+    in-out property <[string]> logs: [];
+
+    // Callbacks to Rust
+    callback toggle-connection();
+    callback select-profile(int);
+    callback delete-profile(int);
+    callback ping-profile(int);
+    callback import-subscription(string, string);
+    callback import-clipboard();
+    callback select-proxy(int);
+    callback test-all-latency();
+    callback toggle-system-proxy(bool);
+    callback toggle-tun(bool);
+    callback save-settings(string, string, string, string, string);
+    callback clear-logs();
+
+    HorizontalLayout {
+        // Navigation Rail (Left Side)
+        Rectangle {
+            width: 80px;
+            background: #21222d;
+            
+            VerticalLayout {
+                padding-top: 24px;
+                padding-bottom: 24px;
+                spacing: 20px;
+                alignment: start;
+
+                // Brand Icon
+                Rectangle {
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 22px;
+                    background: #3182ce;
+                    x: (parent.width - self.width) / 2;
+                    
+                    Text {
+                        text: "2C";
+                        color: #ffffff;
+                        font-size: 16px;
+                        font-weight: 900;
+                        vertical-alignment: center;
+                        horizontal-alignment: center;
+                    }
+                }
+
+                Rectangle { height: 10px; } // spacer
+
+                // Home Nav Item
+                VerticalLayout {
+                    spacing: 4px;
+                    Rectangle {
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 10px;
+                        background: root.active-page-index == 0 ? #2d3748 : transparent;
+                        x: (parent.width - self.width) / 2;
+                        
+                        TouchArea {
+                            clicked => { root.active-page-index = 0; }
+                            Text {
+                                text: "🏠";
+                                font-size: 20px;
+                                vertical-alignment: center;
+                                horizontal-alignment: center;
+                            }
+                        }
+                    }
+                    Text { text: "Home"; color: root.active-page-index == 0 ? #ffffff : #a0aec0; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
+                }
+
+                // Profiles Nav Item
+                VerticalLayout {
+                    spacing: 4px;
+                    Rectangle {
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 10px;
+                        background: root.active-page-index == 1 ? #2d3748 : transparent;
+                        x: (parent.width - self.width) / 2;
+                        
+                        TouchArea {
+                            clicked => { root.active-page-index = 1; }
+                            Text {
+                                text: "📂";
+                                font-size: 20px;
+                                vertical-alignment: center;
+                                horizontal-alignment: center;
+                            }
+                        }
+                    }
+                    Text { text: "Profiles"; color: root.active-page-index == 1 ? #ffffff : #a0aec0; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
+                }
+
+                // Proxies Nav Item
+                VerticalLayout {
+                    spacing: 4px;
+                    Rectangle {
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 10px;
+                        background: root.active-page-index == 2 ? #2d3748 : transparent;
+                        x: (parent.width - self.width) / 2;
+                        
+                        TouchArea {
+                            clicked => { root.active-page-index = 2; }
+                            Text {
+                                text: "⚡";
+                                font-size: 20px;
+                                vertical-alignment: center;
+                                horizontal-alignment: center;
+                            }
+                        }
+                    }
+                    Text { text: "Proxies"; color: root.active-page-index == 2 ? #ffffff : #a0aec0; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
+                }
+
+                // Settings Nav Item
+                VerticalLayout {
+                    spacing: 4px;
+                    Rectangle {
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 10px;
+                        background: root.active-page-index == 3 ? #2d3748 : transparent;
+                        x: (parent.width - self.width) / 2;
+                        
+                        TouchArea {
+                            clicked => { root.active-page-index = 3; }
+                            Text {
+                                text: "⚙";
+                                font-size: 20px;
+                                vertical-alignment: center;
+                                horizontal-alignment: center;
+                            }
+                        }
+                    }
+                    Text { text: "Settings"; color: root.active-page-index == 3 ? #ffffff : #a0aec0; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
+                }
+
+                // Logs Nav Item
+                VerticalLayout {
+                    spacing: 4px;
+                    Rectangle {
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 10px;
+                        background: root.active-page-index == 4 ? #2d3748 : transparent;
+                        x: (parent.width - self.width) / 2;
+                        
+                        TouchArea {
+                            clicked => { root.active-page-index = 4; }
+                            Text {
+                                text: "📋";
+                                font-size: 20px;
+                                vertical-alignment: center;
+                                horizontal-alignment: center;
+                            }
+                        }
+                    }
+                    Text { text: "Logs"; color: root.active-page-index == 4 ? #ffffff : #a0aec0; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
+                }
+
+                // About Nav Item
+                VerticalLayout {
+                    spacing: 4px;
+                    Rectangle {
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 10px;
+                        background: root.active-page-index == 5 ? #2d3748 : transparent;
+                        x: (parent.width - self.width) / 2;
+                        
+                        TouchArea {
+                            clicked => { root.active-page-index = 5; }
+                            Text {
+                                text: "ℹ";
+                                font-size: 20px;
+                                vertical-alignment: center;
+                                horizontal-alignment: center;
+                            }
+                        }
+                    }
+                    Text { text: "About"; color: root.active-page-index == 5 ? #ffffff : #a0aec0; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
+                }
+            }
+        }
+
+        // Screen Content (Switched based on active-page-index)
+        Rectangle {
+            background: #171821;
+            
+            if root.active-page-index == 0 : HomeScreen {
+                connection-status: root.connection-status;
+                active-profile: root.active-profile;
+                download-speed: root.download-speed;
+                upload-speed: root.upload-speed;
+                total-download: root.total-download;
+                total-upload: root.total-upload;
+                is-connected: root.is-connected;
+                is-connecting: root.is-connecting;
+                toggle-connection => { root.toggle-connection(); }
+            }
+            if root.active-page-index == 1 : ProfilesScreen {
+                profiles: root.profiles;
+                select-profile(id) => { root.select-profile(id); }
+                delete-profile(id) => { root.delete-profile(id); }
+                ping-profile(id) => { root.ping-profile(id); }
+                import-subscription(name, url) => { root.import-subscription(name, url); }
+                import-clipboard => { root.import-clipboard(); }
+            }
+            if root.active-page-index == 2 : ProxiesScreen {
+                proxies: root.proxies;
+                select-proxy(id) => { root.select-proxy(id); }
+                test-all-latency => { root.test-all-latency(); }
+            }
+            if root.active-page-index == 3 : SettingsScreen {
+                core-type: root.core-type;
+                system-proxy-enabled: root.system-proxy-enabled;
+                tun-enabled: root.tun-enabled;
+                socks-port: root.socks-port;
+                http-port: root.http-port;
+                dns-server: root.dns-server;
+                routing-preset: root.routing-preset;
+                toggle-system-proxy(enabled) => { root.toggle-system-proxy(enabled); }
+                toggle-tun(enabled) => { root.toggle-tun(enabled); }
+                save-settings(core, socks, http, dns, route) => { root.save-settings(core, socks, http, dns, route); }
+            }
+            if root.active-page-index == 4 : LogsScreen {
+                logs: root.logs;
+                clear-logs => { root.clear-logs(); }
+            }
+            if root.active-page-index == 5 : AboutScreen {}
+        }
+    }
+}

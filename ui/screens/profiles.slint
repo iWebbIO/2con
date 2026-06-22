@@ -1,0 +1,267 @@
+export struct ProfileUiItem {
+    id: int,
+    name: string,
+    protocol: string,
+    address: string,
+    port: int,
+    delay: string,
+    is_active: bool,
+}
+
+export component ProfilesScreen inherits Rectangle {
+    in property <[ProfileUiItem]> profiles: [];
+    in-out property <string> new-sub-url: "";
+    in-out property <string> new-sub-name: "";
+    
+    callback select-profile(int);
+    callback delete-profile(int);
+    callback ping-profile(int);
+    callback import-subscription(string, string); // name, url
+    callback import-clipboard();
+
+    background: #171821;
+
+    VerticalLayout {
+        padding: 24px;
+        spacing: 16px;
+
+        // Header and import section
+        Text {
+            text: "Profile Configuration Manager";
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        // Import actions
+        Rectangle {
+            background: #21222d;
+            border-radius: 12px;
+            padding: 16px;
+            height: 140px;
+
+            VerticalLayout {
+                spacing: 12px;
+                
+                Text {
+                    text: "Import Profiles / Subscription Link";
+                    color: #e2e8f0;
+                    font-size: 14px;
+                    font-weight: 600;
+                }
+
+                HorizontalLayout {
+                    spacing: 8px;
+                    
+                    // Subscription Name Input
+                    VerticalLayout {
+                        spacing: 4px;
+                        Text { text: "Name"; color: #a0aec0; font-size: 10px; }
+                        TextInput := TextInput {
+                            text: root.new-sub-name;
+                            color: #ffffff;
+                            font-size: 13px;
+                            single-line: true;
+                            edited => { root.new-sub-name = self.text; }
+                        }
+                        Rectangle { height: 1px; background: #4a5568; }
+                    }
+
+                    // Subscription URL Input
+                    VerticalLayout {
+                        spacing: 4px;
+                        Text { text: "URL / Link"; color: #a0aec0; font-size: 10px; }
+                        UrlInput := TextInput {
+                            text: root.new-sub-url;
+                            color: #ffffff;
+                            font-size: 13px;
+                            single-line: true;
+                            edited => { root.new-sub-url = self.text; }
+                        }
+                        Rectangle { height: 1px; background: #4a5568; }
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 16px;
+                    alignment: end;
+                    
+                    // Import Clipboard Button
+                    Rectangle {
+                        background: #2d3748;
+                        border-radius: 6px;
+                        width: 140px;
+                        height: 32px;
+                        
+                        TouchArea {
+                            clicked => { root.import-clipboard(); }
+                            Text {
+                                text: "📋 Import Clipboard";
+                                color: #ffffff;
+                                font-size: 12px;
+                                font-weight: 600;
+                                vertical-alignment: center;
+                                horizontal-alignment: center;
+                            }
+                        }
+                    }
+
+                    // Download Sub Button
+                    Rectangle {
+                        background: #3182ce;
+                        border-radius: 6px;
+                        width: 120px;
+                        height: 32px;
+                        
+                        TouchArea {
+                            clicked => { 
+                                root.import-subscription(root.new-sub-name, root.new-sub-url);
+                                root.new-sub-name = "";
+                                root.new-sub-url = "";
+                            }
+                            Text {
+                                text: "📥 Fetch Sub";
+                                color: #ffffff;
+                                font-size: 12px;
+                                font-weight: 600;
+                                vertical-alignment: center;
+                                horizontal-alignment: center;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Profile lists
+        Text {
+            text: "Available Servers";
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        // Scrollable List of Profiles
+        Flickable {
+            viewport-height: profiles.length * 70px;
+            
+            VerticalLayout {
+                spacing: 8px;
+                
+                for profile[idx] in profiles : Rectangle {
+                    height: 60px;
+                    background: profile.is-active ? #2c313d : #21222d;
+                    border-radius: 8px;
+                    border-color: profile.is-active ? #3182ce : transparent;
+                    border-width: 1px;
+                    
+                    HorizontalLayout {
+                        padding-left: 16px;
+                        padding-right: 16px;
+                        spacing: 12px;
+                        alignment: space-between;
+                        
+                        // Main Click Area (Select node)
+                        TouchArea {
+                            clicked => { root.select-profile(profile.id); }
+                            
+                            HorizontalLayout {
+                                spacing: 12px;
+                                alignment: start;
+                                
+                                // Protocol Badge
+                                Rectangle {
+                                    width: 64px;
+                                    height: 24px;
+                                    background: #4a5568;
+                                    border-radius: 4px;
+                                    y: 18px;
+                                    
+                                    Text {
+                                        text: profile.protocol;
+                                        color: #ffffff;
+                                        font-size: 11px;
+                                        font-weight: 700;
+                                        vertical-alignment: center;
+                                        horizontal-alignment: center;
+                                    }
+                                }
+
+                                VerticalLayout {
+                                    alignment: center;
+                                    
+                                    Text {
+                                        text: profile.name;
+                                        color: #ffffff;
+                                        font-size: 14px;
+                                        font-weight: 600;
+                                    }
+                                    
+                                    Text {
+                                        text: profile.address + ":" + profile.port;
+                                        color: #718096;
+                                        font-size: 11px;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Right actions (Delay, Ping, Delete)
+                        HorizontalLayout {
+                            spacing: 12px;
+                            alignment: end;
+                            y: 15px;
+                            
+                            // Delay Text
+                            Text {
+                                text: profile.delay == "" ? "N/A" : profile.delay;
+                                color: profile.delay == "Timeout" ? #e53e3e : #48bb78;
+                                font-size: 12px;
+                                font-weight: 600;
+                                vertical-alignment: center;
+                            }
+
+                            // Ping Trigger
+                            Rectangle {
+                                background: #2d3748;
+                                border-radius: 4px;
+                                width: 44px;
+                                height: 30px;
+                                
+                                TouchArea {
+                                    clicked => { root.ping-profile(profile.id); }
+                                    Text {
+                                        text: "⚡";
+                                        color: #ffffff;
+                                        font-size: 11px;
+                                        vertical-alignment: center;
+                                        horizontal-alignment: center;
+                                    }
+                                }
+                            }
+
+                            // Delete Trigger
+                            Rectangle {
+                                background: #e53e3e;
+                                border-radius: 4px;
+                                width: 44px;
+                                height: 30px;
+                                
+                                TouchArea {
+                                    clicked => { root.delete-profile(profile.id); }
+                                    Text {
+                                        text: "🗑";
+                                        color: #ffffff;
+                                        font-size: 11px;
+                                        vertical-alignment: center;
+                                        horizontal-alignment: center;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

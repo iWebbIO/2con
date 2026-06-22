@@ -1,0 +1,274 @@
+export component SettingsScreen inherits Rectangle {
+    in-out property <string> core-type: "sing-box";
+    in-out property <bool> system-proxy-enabled: false;
+    in-out property <bool> tun-enabled: false;
+    in-out property <int> socks-port: 20808;
+    in-out property <int> http-port: 20809;
+    in-out property <string> dns-server: "8.8.8.8";
+    in-out property <string> routing-preset: "Bypass LAN & China";
+    
+    callback toggle-system-proxy(bool);
+    callback toggle-tun(bool);
+    callback save-settings(string, string, string, string, string); // core, socks, http, dns, route_preset
+
+    background: #171821;
+
+    VerticalLayout {
+        padding: 24px;
+        spacing: 16px;
+
+        Text {
+            text: "Application Settings";
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        Flickable {
+            viewport-height: 520px;
+
+            VerticalLayout {
+                spacing: 16px;
+
+                // Mode toggles
+                Rectangle {
+                    background: #21222d;
+                    border-radius: 12px;
+                    padding: 16px;
+                    
+                    VerticalLayout {
+                        spacing: 12px;
+                        
+                        Text { text: "Network Integration"; color: #ffffff; font-size: 14px; font-weight: 600; }
+                        
+                        // System Proxy Row
+                        HorizontalLayout {
+                            alignment: space-between;
+                            Text { text: "System Proxy (Redirect HTTP/SOCKS)"; color: #a0aec0; font-size: 13px; vertical-alignment: center; }
+                            
+                            // Toggle switch
+                            Rectangle {
+                                width: 50px;
+                                height: 26px;
+                                background: root.system-proxy-enabled ? #48bb78 : #4a5568;
+                                border-radius: 13px;
+                                
+                                TouchArea {
+                                    clicked => {
+                                        root.system-proxy-enabled = !root.system-proxy-enabled;
+                                        root.toggle-system-proxy(root.system-proxy-enabled);
+                                    }
+                                    
+                                    Rectangle {
+                                        width: 22px;
+                                        height: 22px;
+                                        background: #ffffff;
+                                        border-radius: 11px;
+                                        x: root.system-proxy-enabled ? 26px : 2px;
+                                        y: 2px;
+                                        // simple transition simulation
+                                    }
+                                }
+                            }
+                        }
+
+                        Rectangle { height: 1px; background: #2d3748; }
+
+                        // TUN Mode Row
+                        HorizontalLayout {
+                            alignment: space-between;
+                            Text { text: "TUN Mode (Virtual Network Card)"; color: #a0aec0; font-size: 13px; vertical-alignment: center; }
+                            
+                            // Toggle switch
+                            Rectangle {
+                                width: 50px;
+                                height: 26px;
+                                background: root.tun-enabled ? #48bb78 : #4a5568;
+                                border-radius: 13px;
+                                
+                                TouchArea {
+                                    clicked => {
+                                        root.tun-enabled = !root.tun-enabled;
+                                        root.toggle-tun(root.tun-enabled);
+                                    }
+                                    
+                                    Rectangle {
+                                        width: 22px;
+                                        height: 22px;
+                                        background: #ffffff;
+                                        border-radius: 11px;
+                                        x: root.tun-enabled ? 26px : 2px;
+                                        y: 2px;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Core & Routing Group
+                Rectangle {
+                    background: #21222d;
+                    border-radius: 12px;
+                    padding: 16px;
+                    
+                    VerticalLayout {
+                        spacing: 12px;
+                        
+                        Text { text: "Core Configuration"; color: #ffffff; font-size: 14px; font-weight: 600; }
+                        
+                        // Core Select (xray / sing-box)
+                        HorizontalLayout {
+                            alignment: space-between;
+                            Text { text: "Core Engine Selection"; color: #a0aec0; font-size: 13px; vertical-alignment: center; }
+                            
+                            HorizontalLayout {
+                                spacing: 8px;
+                                
+                                Rectangle {
+                                    width: 80px;
+                                    height: 28px;
+                                    background: root.core-type == "xray" ? #3182ce : #2d3748;
+                                    border-radius: 4px;
+                                    TouchArea {
+                                        clicked => { root.core-type = "xray"; }
+                                        Text { text: "Xray-core"; color: #ffffff; font-size: 11px; font-weight: 600; horizontal-alignment: center; vertical-alignment: center; }
+                                    }
+                                }
+
+                                Rectangle {
+                                    width: 80px;
+                                    height: 28px;
+                                    background: root.core-type == "sing-box" ? #3182ce : #2d3748;
+                                    border-radius: 4px;
+                                    TouchArea {
+                                        clicked => { root.core-type = "sing-box"; }
+                                        Text { text: "Sing-box"; color: #ffffff; font-size: 11px; font-weight: 600; horizontal-alignment: center; vertical-alignment: center; }
+                                    }
+                                }
+                            }
+                        }
+
+                        Rectangle { height: 1px; background: #2d3748; }
+
+                        // Routing Preset Select (Bypass LAN / Global / Custom)
+                        HorizontalLayout {
+                            alignment: space-between;
+                            Text { text: "Routing Mode"; color: #a0aec0; font-size: 13px; vertical-alignment: center; }
+                            
+                            HorizontalLayout {
+                                spacing: 8px;
+                                
+                                Rectangle {
+                                    width: 100px;
+                                    height: 28px;
+                                    background: root.routing-preset == "Bypass LAN & China" ? #3182ce : #2d3748;
+                                    border-radius: 4px;
+                                    TouchArea {
+                                        clicked => { root.routing-preset = "Bypass LAN & China"; }
+                                        Text { text: "Bypass China"; color: #ffffff; font-size: 11px; font-weight: 600; horizontal-alignment: center; vertical-alignment: center; }
+                                    }
+                                }
+
+                                Rectangle {
+                                    width: 70px;
+                                    height: 28px;
+                                    background: root.routing-preset == "Global" ? #3182ce : #2d3748;
+                                    border-radius: 4px;
+                                    TouchArea {
+                                        clicked => { root.routing-preset = "Global"; }
+                                        Text { text: "Global"; color: #ffffff; font-size: 11px; font-weight: 600; horizontal-alignment: center; vertical-alignment: center; }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Inbounds Details
+                Rectangle {
+                    background: #21222d;
+                    border-radius: 12px;
+                    padding: 16px;
+                    
+                    VerticalLayout {
+                        spacing: 12px;
+                        
+                        Text { text: "Ports & DNS Settings"; color: #ffffff; font-size: 14px; font-weight: 600; }
+                        
+                        HorizontalLayout {
+                            spacing: 12px;
+                            
+                            // Socks port
+                            VerticalLayout {
+                                spacing: 4px;
+                                Text { text: "SOCKS Port"; color: #a0aec0; font-size: 11px; }
+                                SocksInput := TextInput {
+                                    text: root.socks-port;
+                                    color: #ffffff;
+                                    font-size: 13px;
+                                    single-line: true;
+                                }
+                                Rectangle { height: 1px; background: #4a5568; }
+                            }
+
+                            // Http port
+                            VerticalLayout {
+                                spacing: 4px;
+                                Text { text: "HTTP Port"; color: #a0aec0; font-size: 11px; }
+                                HttpInput := TextInput {
+                                    text: root.http-port;
+                                    color: #ffffff;
+                                    font-size: 13px;
+                                    single-line: true;
+                                }
+                                Rectangle { height: 1px; background: #4a5568; }
+                            }
+                        }
+
+                        // DNS Server input
+                        VerticalLayout {
+                            spacing: 4px;
+                            Text { text: "Primary DNS Server"; color: #a0aec0; font-size: 11px; }
+                            DnsInput := TextInput {
+                                text: root.dns-server;
+                                color: #ffffff;
+                                font-size: 13px;
+                                single-line: true;
+                            }
+                            Rectangle { height: 1px; background: #4a5568; }
+                        }
+                    }
+                }
+
+                // Save actions
+                Rectangle {
+                    background: #3182ce;
+                    border-radius: 8px;
+                    height: 40px;
+                    
+                    TouchArea {
+                        clicked => {
+                            // parse port numbers and save
+                            root.save-settings(
+                                root.core-type,
+                                SocksInput.text,
+                                HttpInput.text,
+                                DnsInput.text,
+                                root.routing-preset
+                            );
+                        }
+                        Text {
+                            text: "💾 Save Configurations";
+                            color: #ffffff;
+                            font-size: 14px;
+                            font-weight: 700;
+                            vertical-alignment: center;
+                            horizontal-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,135 @@
+export struct ProxyUiItem {
+    id: int,
+    name: string,
+    protocol: string,
+    delay: string,
+    is_active: bool,
+}
+
+export component ProxiesScreen inherits Rectangle {
+    in property <[ProxyUiItem]> proxies: [];
+    callback select-proxy(int);
+    callback test-all-latency();
+
+    background: #171821;
+
+    VerticalLayout {
+        padding: 24px;
+        spacing: 16px;
+
+        // Top actions / summary
+        HorizontalLayout {
+            alignment: space-between;
+            
+            Text {
+                text: "Select Outbound Proxy Node";
+                color: #ffffff;
+                font-size: 20px;
+                font-weight: 700;
+            }
+
+            Rectangle {
+                background: #3182ce;
+                border-radius: 6px;
+                width: 130px;
+                height: 32px;
+                
+                TouchArea {
+                    clicked => { root.test-all-latency(); }
+                    Text {
+                        text: "⚡ Test Latencies";
+                        color: #ffffff;
+                        font-size: 12px;
+                        font-weight: 600;
+                        vertical-alignment: center;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+        }
+
+        // Search/Filter placeholder could go here
+        
+        // Scrollable Grid/List of Proxies
+        Flickable {
+            viewport-height: (proxies.length + 1) / 2 * 65px;
+            
+            VerticalLayout {
+                spacing: 8px;
+                
+                // Representing proxies in a grid-like list layout
+                for proxy[idx] in proxies : Rectangle {
+                    height: 55px;
+                    background: proxy.is-active ? #2c313d : #21222d;
+                    border-radius: 8px;
+                    border-color: proxy.is-active ? #3182ce : transparent;
+                    border-width: 1px;
+                    
+                    TouchArea {
+                        clicked => { root.select-proxy(proxy.id); }
+                        
+                        HorizontalLayout {
+                            padding-left: 16px;
+                            padding-right: 16px;
+                            spacing: 12px;
+                            alignment: space-between;
+                            
+                            HorizontalLayout {
+                                spacing: 12px;
+                                alignment: start;
+                                
+                                // Protocol Indicator Dot
+                                Rectangle {
+                                    width: 8px;
+                                    height: 8px;
+                                    border-radius: 4px;
+                                    background: proxy.is-active ? #48bb78 : #a0aec0;
+                                    y: 23px;
+                                }
+
+                                VerticalLayout {
+                                    alignment: center;
+                                    
+                                    Text {
+                                        text: proxy.name;
+                                        color: #ffffff;
+                                        font-size: 14px;
+                                        font-weight: 600;
+                                    }
+                                    
+                                    Text {
+                                        text: proxy.protocol;
+                                        color: #718096;
+                                        font-size: 11px;
+                                    }
+                                }
+                            }
+
+                            // Latency Speed display
+                            HorizontalLayout {
+                                alignment: end;
+                                y: 17px;
+                                
+                                Rectangle {
+                                    background: proxy.delay == "" ? #2d3748 : (proxy.delay == "Timeout" ? #742a2a : #22543d);
+                                    border-radius: 4px;
+                                    padding-left: 8px;
+                                    padding-right: 8px;
+                                    height: 22px;
+                                    
+                                    Text {
+                                        text: proxy.delay == "" ? "Not Tested" : proxy.delay;
+                                        color: proxy.delay == "" ? #a0aec0 : (proxy.delay == "Timeout" ? #fed7d7 : #c6f6d5);
+                                        font-size: 11px;
+                                        font-weight: 700;
+                                        vertical-alignment: center;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

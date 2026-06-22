@@ -1,0 +1,68 @@
+export component LogsScreen inherits Rectangle {
+    in property <[string]> logs: [];
+    callback clear-logs();
+
+    background: #171821;
+
+    VerticalLayout {
+        padding: 24px;
+        spacing: 16px;
+
+        // Title and Actions
+        HorizontalLayout {
+            alignment: space-between;
+            
+            Text {
+                text: "Real-time Logs";
+                color: #ffffff;
+                font-size: 20px;
+                font-weight: 700;
+            }
+
+            Rectangle {
+                background: #e53e3e;
+                border-radius: 6px;
+                width: 100px;
+                height: 32px;
+                
+                TouchArea {
+                    clicked => { root.clear-logs(); }
+                    Text {
+                        text: "🗑 Clear Logs";
+                        color: #ffffff;
+                        font-size: 12px;
+                        font-weight: 600;
+                        vertical-alignment: center;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+        }
+
+        // Terminal Console Area
+        Rectangle {
+            background: #0f1015;
+            border-radius: 8px;
+            border-width: 1px;
+            border-color: #2d3748;
+            
+            Flickable {
+                viewport-height: logs.length * 20px + 20px;
+                padding: 12px;
+                
+                VerticalLayout {
+                    alignment: start;
+                    spacing: 4px;
+                    
+                    for log-line[idx] in logs : Text {
+                        text: log-line;
+                        color: #a0aec0;
+                        font-family: "Courier New";
+                        font-size: 12px;
+                        wrap: word-wrap;
+                    }
+                }
+            }
+        }
+    }
+}
