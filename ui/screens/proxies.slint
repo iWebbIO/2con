@@ -6,11 +6,14 @@ export struct ProxyUiItem {
     name: string,
     protocol: string,
     delay: string,
+    delay-ms: int,
     is_active: bool,
 }
 
 export component ProxiesScreen inherits Rectangle {
     in property <[ProxyUiItem]> proxies: [];
+    in-out property <string> selected-group: "All";
+    
     callback select-proxy(int);
     callback test-all-latency();
 
@@ -20,105 +23,221 @@ export component ProxiesScreen inherits Rectangle {
         padding: Theme.padding-screen;
         spacing: Theme.gap-md;
 
-        // Top actions / summary
+        // Top Header and Test action
         HorizontalLayout {
             alignment: space-between;
+            height: 28px;
             
             Text {
-                text: "Select Outbound Proxy Node";
+                text: "Outbound Nodes";
                 color: Theme.text-primary;
-                font-size: 20px;
-                font-weight: 700;
+                font-size: Theme.font-header;
+                font-weight: 800;
+                vertical-alignment: center;
             }
 
             IconButton {
                 icon-source: Icons.nav-proxies;
-                text: "Test Latencies";
+                text: "Test";
                 background-color: Theme.accent;
                 hover-background-color: Theme.accent.brighter(10%);
                 active-background-color: Theme.accent.darker(15%);
-                width: 140px;
-                height: 32px;
+                width: 60px;
+                height: 26px;
                 clicked => { root.test-all-latency(); }
             }
         }
 
-        // Scrollable Grid/List of Proxies
+        // Horizontal Group Chip Selection Row (scrolling/flickable)
+        Rectangle {
+            height: 26px;
+            
+            Flickable {
+                viewport-width: 280px;
+                
+                HorizontalLayout {
+                    spacing: Theme.gap-md;
+                    
+                    // All Chip
+                    Rectangle {
+                        background: root.selected-group == "All" ? Theme.accent : Theme.surface;
+                        border-radius: 4px;
+                        height: 22px;
+                        
+                        TouchArea {
+                            clicked => { root.selected-group = "All"; }
+                        }
+                        
+                        HorizontalLayout {
+                            width: 100%;
+                            height: 100%;
+                            padding-left: 10px;
+                            padding-right: 10px;
+                            alignment: center;
+                            Text {
+                                text: "All";
+                                color: Theme.text-primary;
+                                font-size: Theme.font-metadata;
+                                font-weight: 700;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+
+                    // VLESS Chip
+                    Rectangle {
+                        background: root.selected-group == "VLESS" ? Theme.accent : Theme.surface;
+                        border-radius: 4px;
+                        height: 22px;
+                        
+                        TouchArea {
+                            clicked => { root.selected-group = "VLESS"; }
+                        }
+                        
+                        HorizontalLayout {
+                            width: 100%;
+                            height: 100%;
+                            padding-left: 10px;
+                            padding-right: 10px;
+                            alignment: center;
+                            Text {
+                                text: "VLESS";
+                                color: Theme.text-primary;
+                                font-size: Theme.font-metadata;
+                                font-weight: 700;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+
+                    // Active (Auto) Chip
+                    Rectangle {
+                        background: root.selected-group == "Active" ? Theme.accent : Theme.surface;
+                        border-radius: 4px;
+                        height: 22px;
+                        
+                        TouchArea {
+                            clicked => { root.selected-group = "Active"; }
+                        }
+                        
+                        HorizontalLayout {
+                            width: 100%;
+                            height: 100%;
+                            padding-left: 10px;
+                            padding-right: 10px;
+                            alignment: center;
+                            Text {
+                                text: "Active";
+                                color: Theme.text-primary;
+                                font-size: Theme.font-metadata;
+                                font-weight: 700;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Scrollable compressed proxy list
         Flickable {
-            viewport-height: (proxies.length + 1) / 2 * 65px;
+            viewport-height: proxies.length * 36px;
             
             VerticalLayout {
-                spacing: 8px;
+                spacing: 4px;
+                alignment: start;
                 
-                // Representing proxies in a list layout
                 for proxy[idx] in proxies : Rectangle {
-                    height: 55px;
+                    property <bool> is-visible: root.selected-group == "All" || (root.selected-group == "VLESS" && (proxy.protocol == "vless" || proxy.protocol == "VLESS")) || (root.selected-group == "Active" && proxy.is-active);
+                    height: is-visible ? 32px : 0px;
+                    visible: is-visible;
                     background: proxy.is-active ? Theme.elevated : Theme.surface;
                     border-radius: Theme.card-radius;
                     border-color: proxy.is-active ? Theme.accent : transparent;
-                    border-width: 1px;
+                    border-width: is-visible ? 1px : 0px;
                     
                     TouchArea {
                         clicked => { root.select-proxy(proxy.id); }
+                    }
+                    
+                    HorizontalLayout {
+                        width: 100%;
+                        height: 100%;
+                        padding-left: 8px;
+                        padding-right: 8px;
+                        spacing: 8px;
+                        alignment: space-between;
                         
+                        // Protocol indicator and Name
                         HorizontalLayout {
-                            padding-left: Theme.card-padding;
-                            padding-right: Theme.card-padding;
-                            spacing: 12px;
-                            alignment: space-between;
+                            spacing: 8px;
+                            alignment: start;
                             
-                            HorizontalLayout {
-                                spacing: 12px;
-                                alignment: start;
-                                
-                                // Protocol Indicator Dot (Centered Vertically)
-                                VerticalLayout {
-                                    alignment: center;
-                                    Rectangle {
-                                        width: 8px;
-                                        height: 8px;
-                                        border-radius: 4px;
-                                        background: proxy.is-active ? Theme.success : Theme.text-secondary;
-                                    }
-                                }
-
-                                VerticalLayout {
-                                    alignment: center;
-                                    
-                                    Text {
-                                        text: proxy.name;
-                                        color: Theme.text-primary;
-                                        font-size: 14px;
-                                        font-weight: 600;
-                                    }
+                            // Protocol indicator text badge
+                            VerticalLayout {
+                                alignment: center;
+                                Rectangle {
+                                    background: Theme.elevated;
+                                    border-radius: 3px;
+                                    height: 18px;
+                                    width: 44px;
                                     
                                     Text {
                                         text: proxy.protocol;
                                         color: Theme.text-secondary;
-                                        font-size: 11px;
+                                        font-size: Theme.font-metadata;
+                                        font-weight: 700;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
                                     }
                                 }
                             }
 
-                            // Latency Speed display (Centered Vertically)
-                            VerticalLayout {
-                                alignment: center;
-                                Rectangle {
-                                    background: proxy.delay == "" ? Theme.elevated : (proxy.delay == "Timeout" ? #742a2a : #22543d);
-                                    border-radius: 4px;
-                                    height: 22px;
-                                    
+                            Text {
+                                text: proxy.name;
+                                color: Theme.text-primary;
+                                font-size: Theme.font-primary;
+                                font-weight: 600;
+                                vertical-alignment: center;
+                                overflow: elide;
+                            }
+                        }
+
+                        // Latency hover-expanding dot
+                        VerticalLayout {
+                            alignment: center;
+                            
+                            Rectangle {
+                                width: dot-ta.has-hover ? 64px : 8px;
+                                height: 18px;
+                                border-radius: 9px;
+                                background: dot-ta.has-hover ? Theme.elevated : transparent;
+                                
+                                animate width {
+                                    duration: 150ms;
+                                    easing: ease-in-out;
+                                }
+                                
+                                dot-ta := TouchArea {
                                     HorizontalLayout {
-                                        padding-left: 8px;
-                                        padding-right: 8px;
                                         alignment: center;
+                                        spacing: dot-ta.has-hover ? 4px : 0px;
+                                        padding-left: dot-ta.has-hover ? 6px : 0px;
+                                        padding-right: dot-ta.has-hover ? 6px : 0px;
                                         
-                                        Text {
-                                            text: proxy.delay == "" ? "Not Tested" : proxy.delay;
-                                            color: proxy.delay == "" ? Theme.text-secondary : (proxy.delay == "Timeout" ? #fed7d7 : #c6f6d5);
-                                            font-size: 11px;
+                                        if dot-ta.has-hover : Text {
+                                            text: proxy.delay == "" ? "N/A" : proxy.delay;
+                                            color: Theme.text-primary;
+                                            font-size: Theme.font-metadata;
                                             font-weight: 700;
                                             vertical-alignment: center;
+                                        }
+                                        
+                                        Rectangle {
+                                            width: 8px;
+                                            height: 8px;
+                                            border-radius: 4px;
+                                            background: proxy.delay-ms < 0 ? Theme.danger : (proxy.delay-ms == 0 ? Theme.text-muted : (proxy.delay-ms < 150 ? Theme.success : (proxy.delay-ms < 350 ? Theme.warning : Theme.danger)));
                                         }
                                     }
                                 }

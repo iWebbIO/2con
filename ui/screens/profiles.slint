@@ -21,6 +21,7 @@ export component ProfilesScreen inherits Rectangle {
     callback ping-profile(int);
     callback import-subscription(string, string); // name, url
     callback import-clipboard();
+    callback show-sub-menu(int, string, string); // id, name, url
 
     background: Theme.background;
 
@@ -28,55 +29,55 @@ export component ProfilesScreen inherits Rectangle {
         padding: Theme.padding-screen;
         spacing: Theme.gap-md;
 
-        // Header and import section
+        // Header Title
         Text {
-            text: "Profile Configuration Manager";
+            text: "Subscriptions";
             color: Theme.text-primary;
-            font-size: 20px;
-            font-weight: 700;
+            font-size: Theme.font-header;
+            font-weight: 800;
         }
 
-        // Import actions
+        // Import compact section
         Rectangle {
             background: Theme.surface;
             border-radius: Theme.card-radius;
             
             VerticalLayout {
                 padding: Theme.card-padding;
-                spacing: 12px;
+                spacing: Theme.gap-md;
                 
                 Text {
-                    text: "Import Profiles / Subscription Link";
+                    text: "Import Subscription Link";
                     color: Theme.text-primary;
-                    font-size: 14px;
+                    font-size: Theme.font-primary;
                     font-weight: 600;
                 }
 
                 HorizontalLayout {
-                    spacing: 8px;
+                    spacing: Theme.gap-md;
                     
-                    // Subscription Name Input
+                    // Name Input
                     VerticalLayout {
-                        spacing: 4px;
-                        Text { text: "Name"; color: Theme.text-secondary; font-size: 10px; }
+                        spacing: 2px;
+                        Text { text: "Name"; color: Theme.text-secondary; font-size: Theme.font-metadata; }
                         TextInput := TextInput {
                             text: root.new-sub-name;
                             color: Theme.text-primary;
-                            font-size: 13px;
+                            font-size: Theme.font-primary;
                             single-line: true;
                             edited => { root.new-sub-name = self.text; }
                         }
                         Rectangle { height: 1px; background: Theme.elevated; }
                     }
 
-                    // Subscription URL Input
+                    // URL Input
                     VerticalLayout {
-                        spacing: 4px;
-                        Text { text: "URL / Link"; color: Theme.text-secondary; font-size: 10px; }
+                        spacing: 2px;
+                        Text { text: "URL"; color: Theme.text-secondary; font-size: Theme.font-metadata; }
                         UrlInput := TextInput {
                             text: root.new-sub-url;
                             color: Theme.text-primary;
-                            font-size: 13px;
+                            font-size: Theme.font-primary;
                             single-line: true;
                             edited => { root.new-sub-url = self.text; }
                         }
@@ -85,30 +86,28 @@ export component ProfilesScreen inherits Rectangle {
                 }
 
                 HorizontalLayout {
-                    spacing: 16px;
+                    spacing: Theme.gap-lg;
                     alignment: end;
                     
-                    // Import Clipboard Button
                     IconButton {
                         icon-source: Icons.clipboard;
-                        text: "Import Clipboard";
+                        text: "Paste";
                         background-color: Theme.elevated;
                         hover-background-color: Theme.elevated.brighter(10%);
                         active-background-color: Theme.surface;
-                        width: 160px;
-                        height: 32px;
+                        width: 70px;
+                        height: 24px;
                         clicked => { root.import-clipboard(); }
                     }
 
-                    // Download Sub Button
                     IconButton {
                         icon-source: Icons.fetch;
-                        text: "Fetch Sub";
+                        text: "Fetch";
                         background-color: Theme.accent;
                         hover-background-color: Theme.accent.brighter(10%);
                         active-background-color: Theme.accent.darker(15%);
-                        width: 120px;
-                        height: 32px;
+                        width: 70px;
+                        height: 24px;
                         clicked => { 
                             root.import-subscription(root.new-sub-name, root.new-sub-url);
                             root.new-sub-name = "";
@@ -119,23 +118,16 @@ export component ProfilesScreen inherits Rectangle {
             }
         }
 
-        // Profile lists
-        Text {
-            text: "Available Servers";
-            color: Theme.text-primary;
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        // Scrollable List of Profiles
+        // Scrollable List of Subscriptions (profiles representation)
         Flickable {
-            viewport-height: profiles.length * 70px;
+            viewport-height: profiles.length * 44px;
             
             VerticalLayout {
-                spacing: 8px;
+                spacing: 4px;
+                alignment: start;
                 
                 for profile[idx] in profiles : Rectangle {
-                    height: 60px;
+                    height: 40px;
                     background: profile.is-active ? Theme.elevated : Theme.surface;
                     border-radius: Theme.card-radius;
                     border-color: profile.is-active ? Theme.accent : transparent;
@@ -144,98 +136,63 @@ export component ProfilesScreen inherits Rectangle {
                     HorizontalLayout {
                         padding-left: Theme.card-padding;
                         padding-right: Theme.card-padding;
-                        spacing: 12px;
                         alignment: space-between;
                         
-                        // Main Click Area (Select node)
-                        TouchArea {
-                            clicked => { root.select-profile(profile.id); }
+                        // Left: active indicator, name, and timestamp
+                        HorizontalLayout {
+                            spacing: 8px;
+                            alignment: start;
                             
-                            HorizontalLayout {
-                                spacing: 12px;
-                                alignment: start;
-                                
-                                // Protocol Badge
-                                VerticalLayout {
-                                    alignment: center;
-                                    Rectangle {
-                                        width: 64px;
-                                        height: 24px;
-                                        background: Theme.elevated;
-                                        border-radius: 4px;
-                                        
-                                        Text {
-                                            text: profile.protocol;
-                                            color: Theme.text-primary;
-                                            font-size: 11px;
-                                            font-weight: 700;
-                                            x: (parent.width - self.width) / 2;
-                                            y: (parent.height - self.height) / 2;
-                                        }
-                                    }
+                            VerticalLayout {
+                                alignment: center;
+                                Rectangle {
+                                    width: 6px;
+                                    height: 6px;
+                                    border-radius: 3px;
+                                    background: profile.is-active ? Theme.success : Theme.text-muted;
                                 }
+                            }
 
-                                VerticalLayout {
-                                    alignment: center;
-                                    
-                                    Text {
-                                        text: profile.name;
-                                        color: Theme.text-primary;
-                                        font-size: 14px;
-                                        font-weight: 600;
-                                    }
-                                    
-                                    Text {
-                                        text: profile.address + ":" + profile.port;
-                                        color: Theme.text-secondary;
-                                        font-size: 11px;
-                                    }
+                            VerticalLayout {
+                                alignment: center;
+                                spacing: 2px;
+                                
+                                Text {
+                                    text: profile.name;
+                                    color: Theme.text-primary;
+                                    font-size: Theme.font-primary;
+                                    font-weight: 600;
+                                    overflow: elide;
+                                }
+                                
+                                Text {
+                                    text: "Updated: " + profile.delay;
+                                    color: Theme.text-muted;
+                                    font-size: Theme.font-metadata;
                                 }
                             }
                         }
 
-                        // Right actions (Delay, Ping, Delete)
-                        HorizontalLayout {
-                            spacing: 12px;
-                            alignment: end;
+                        // Right: Vertical Ellipsis Options menu trigger
+                        VerticalLayout {
+                            alignment: center;
                             
-                            VerticalLayout {
-                                alignment: center;
-                                HorizontalLayout {
-                                    spacing: 12px;
-                                    alignment: end;
+                            Rectangle {
+                                width: 24px;
+                                height: 24px;
+                                border-radius: 12px;
+                                background: transparent;
+                                
+                                TouchArea {
+                                    clicked => { root.show-sub-menu(profile.id, profile.name, profile.address); }
                                     
-                                    // Delay Text
                                     Text {
-                                        text: profile.delay == "" ? "N/A" : profile.delay;
-                                        color: profile.delay == "Timeout" ? Theme.danger : Theme.success;
-                                        font-size: 12px;
-                                        font-weight: 600;
+                                        text: "⋮";
+                                        color: Theme.text-primary;
+                                        font-size: 16px;
+                                        font-weight: 800;
+                                        horizontal-alignment: center;
                                         vertical-alignment: center;
-                                    }
-
-                                    // Ping Trigger
-                                    IconButton {
-                                        icon-source: Icons.nav-proxies;
-                                        icon-size: 12px;
-                                        background-color: Theme.elevated;
-                                        hover-background-color: Theme.elevated.brighter(10%);
-                                        active-background-color: Theme.surface;
-                                        width: 44px;
-                                        height: 30px;
-                                        clicked => { root.ping-profile(profile.id); }
-                                    }
-
-                                    // Delete Trigger
-                                    IconButton {
-                                        icon-source: Icons.delete;
-                                        icon-size: 12px;
-                                        background-color: Theme.danger;
-                                        hover-background-color: Theme.danger.brighter(10%);
-                                        active-background-color: Theme.danger.darker(15%);
-                                        width: 44px;
-                                        height: 30px;
-                                        clicked => { root.delete-profile(profile.id); }
                                     }
                                 }
                             }

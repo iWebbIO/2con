@@ -13,21 +13,30 @@ use std::sync::Arc;
 use std::time::Duration;
 
 pub fn refresh_profiles_ui(ui: &AppWindow, storage: &Storage) {
-    if let Ok(profiles) = storage.get_profiles() {
-        let ui_profiles: Vec<crate::ProfileUiItem> = profiles
+    if let Ok(subs) = storage.get_subscriptions() {
+        let active_profile = storage.get_active_profile().ok().flatten();
+        let active_sub_id = active_profile.and_then(|p| p.sub_id);
+
+        let ui_profiles: Vec<crate::ProfileUiItem> = subs
             .into_iter()
-            .map(|p| crate::ProfileUiItem {
-                id: p.id.unwrap_or(0) as i32,
-                name: p.name.into(),
-                protocol: p.protocol.into(),
-                address: p.address.into(),
-                port: p.port as i32,
-                delay: match p.delay {
-                    None => "".into(),
-                    Some(-1) => "Timeout".into(),
-                    Some(ms) => format!("{} ms", ms).into(),
-                },
-                is_active: p.is_active,
+            .map(|s| {
+                let is_active = Some(s.id.unwrap_or(0)) == active_sub_id;
+                let ts = s.last_updated.unwrap_or_else(|| "N/A".to_string());
+                let formatted_ts = if ts.len() > 16 {
+                    ts[0..10].to_string() + " " + &ts[11..16]
+                } else {
+                    ts
+                };
+
+                crate::ProfileUiItem {
+                    id: s.id.unwrap_or(0) as i32,
+                    name: s.name.into(),
+                    protocol: "Subscription".into(),
+                    address: s.url.into(),
+                    port: 0,
+                    delay: formatted_ts.into(),
+                    is_active,
+                }
             })
             .collect();
         let model = VecModel::from(ui_profiles);
@@ -48,6 +57,7 @@ pub fn refresh_proxies_ui(ui: &AppWindow, storage: &Storage) {
                     Some(-1) => "Timeout".into(),
                     Some(ms) => format!("{} ms", ms).into(),
                 },
+                delay_ms: p.delay.unwrap_or(0),
                 is_active: p.is_active,
             })
             .collect();
@@ -229,17 +239,17 @@ pub fn bind_ui_callbacks(ui: &AppWindow, state: Arc<AppState>) {
         }
     });
 
-    // Delete Profile
+    // Delete Profile (mapped to Delete Subscription)
     let state_c = state.clone();
     let ui_weak = ui.as_weak();
     ui.on_delete_profile(move |id| {
         let storage = state_c.storage.clone();
-        let _ = storage.delete_profile(id as i64);
+        let _ = storage.delete_subscription(id as i64);
         
         let ui = ui_weak.upgrade().unwrap();
         refresh_profiles_ui(&ui, &storage);
         refresh_proxies_ui(&ui, &storage);
-        append_log(&ui, format!("[2con] Deleted profile ID: {}", id));
+        append_log(&ui, format!("[2con] Deleted subscription ID: {}", id));
     });
 
     // Ping Profile
@@ -465,4 +475,47 @@ pub fn bind_ui_callbacks(ui: &AppWindow, state: Arc<AppState>) {
             ui.set_logs(ModelRc::new(VecModel::default()));
         }
     });
+
+    // Copy Logs console output
+    let ui_weak = ui.as_weak();
+    ui.on_copy_logs(move || {
+        if let Some(ui) = ui_weak.upgrade() {
+            let logs_model = ui.get_logs();
+            let mut logs_text = String::new();
+            for log in logs_model.iter() {
+                logs_text.push_str(&log);
+                logs_text.push('\n');
+            }
+            copy_to_clipboard(&logs_text);
+            append_log(&ui, "[2con] Copied logs to clipboard!".into());
+        }
+    });
+
+    // Copy Subscription URL / generic text
+    let ui_weak = ui.as_weak();
+    ui.on_copy_text(move |text| {
+        copy_to_clipboard(text.as_str());
+        if let Some(ui) = ui_weak.upgrade() {
+            append_log(&ui, "[2con] Copied text to clipboard!".into());
+        }
+    });
+}
+
+fn copy_to_clipboard(text: &str) {
+    use std::process::{Command, Stdio};
+    use std::io::Write;
+    
+    if cfg!(target_os = "windows") {
+        if let Ok(mut child) = Command::new("clip")
+            .stdin(Stdio::piped())
+            .spawn()
+        {
+            if let Some(mut stdin) = child.stdin.take() {
+                let _ = stdin.write_all(text.as_bytes());
+            }
+            let _ = child.wait();
+        }
+    } else {
+        println!("Clipboard copy only supported on Windows clip.exe");
+    }
 }

@@ -1,9 +1,10 @@
 import { Theme } from "../components/theme.slint";
-import { Icons, Icon } from "../components/icons.slint";
+import { Icons, Icon, IconButton } from "../components/icons.slint";
 
 export component HomeScreen inherits Rectangle {
     in property <string> connection-status: "Disconnected";
     in property <string> active-profile: "No Profile Selected";
+    in property <string> routing-mode: "Bypass LAN & China";
     in property <string> download-speed: "0 KB/s";
     in property <string> upload-speed: "0 KB/s";
     in property <string> total-download: "0 MB";
@@ -12,188 +13,228 @@ export component HomeScreen inherits Rectangle {
     in property <bool> is-connecting: false;
     
     callback toggle-connection();
+    callback trigger-quick-select();
+    callback trigger-logs();
 
     background: Theme.background;
 
+    // Header Area with Title and Floating Logs Console Button
     VerticalLayout {
         padding: Theme.padding-screen;
-        spacing: Theme.gap-lg;
+        spacing: Theme.gap-md;
+        alignment: start;
 
-        // Top Info Bar
+        // Top Bar
+        HorizontalLayout {
+            alignment: space-between;
+            height: 32px;
+            
+            Text {
+                text: "2con Client";
+                color: Theme.text-primary;
+                font-size: Theme.font-header;
+                font-weight: 800;
+                vertical-alignment: center;
+            }
+
+            // Floating logs overlay trigger
+            IconButton {
+                icon-source: Icons.nav-logs;
+                icon-size: 14px;
+                background-color: Theme.elevated;
+                hover-background-color: Theme.elevated.brighter(10%);
+                active-background-color: Theme.surface;
+                width: 32px;
+                height: 32px;
+                clicked => { root.trigger-logs(); }
+            }
+        }
+
+        // Spacer to push content down slightly but keep it centered
+        Rectangle { height: 16px; }
+
+        // Centralized Connection Toggle Section
+        VerticalLayout {
+            alignment: center;
+            spacing: Theme.gap-lg;
+
+            // Connection Toggle Button
+            HorizontalLayout {
+                alignment: center;
+                Rectangle {
+                    width: 140px;
+                    height: 140px;
+                    border-radius: 70px;
+                    background: is-connected ? Theme.success.with-alpha(0.12) : (is-connecting ? Theme.warning.with-alpha(0.12) : Theme.surface);
+                    border-color: is-connected ? Theme.success : (is-connecting ? Theme.warning : Theme.elevated);
+                    border-width: 3px;
+                    
+                    TouchArea {
+                        clicked => { root.toggle-connection(); }
+                    }
+                    
+                    VerticalLayout {
+                        width: 100%;
+                        height: 100%;
+                        alignment: center;
+                        spacing: Theme.gap-md;
+                        
+                        HorizontalLayout {
+                            alignment: center;
+                            Icon {
+                                icon-source: is-connected ? Icons.check : Icons.connect;
+                                icon-color: is-connected ? Theme.success : (is-connecting ? Theme.warning : Theme.text-primary);
+                                size: 36px;
+                            }
+                        }
+
+                        VerticalLayout {
+                            spacing: 2px;
+                            Text {
+                                text: is-connected ? "Connected" : (is-connecting ? "Connecting..." : "Disconnected");
+                                color: Theme.text-primary;
+                                font-size: Theme.font-primary;
+                                font-weight: 700;
+                                horizontal-alignment: center;
+                            }
+                            Text {
+                                text: is-connected ? "Tap to Stop" : "Tap to Start";
+                                color: Theme.text-secondary;
+                                font-size: Theme.font-metadata;
+                                horizontal-alignment: center;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Clickable Quick-Select Pill (Routing Preset & Active Profile)
+            HorizontalLayout {
+                alignment: center;
+                Rectangle {
+                    background: Theme.surface;
+                    border-radius: Theme.card-radius;
+                    border-width: 1px;
+                    border-color: Theme.elevated;
+                    height: 28px;
+                    width: 260px;
+                    
+                    TouchArea {
+                        clicked => { root.trigger-quick-select(); }
+                    }
+                    
+                    HorizontalLayout {
+                        width: 100%;
+                        height: 100%;
+                        alignment: center;
+                        spacing: 8px;
+                        padding-left: 10px;
+                        padding-right: 10px;
+                        
+                        Text {
+                            text: routing-mode;
+                            color: Theme.accent;
+                            font-size: Theme.font-metadata;
+                            font-weight: 700;
+                            vertical-alignment: center;
+                        }
+                        
+                        Rectangle {
+                            width: 1px;
+                            height: 10px;
+                            background: Theme.elevated;
+                        }
+                        
+                        Text {
+                            text: active-profile;
+                            color: Theme.text-primary;
+                            font-size: Theme.font-metadata;
+                            font-weight: 600;
+                            vertical-alignment: center;
+                            overflow: elide;
+                        }
+                    }
+                }
+            }
+        }
+
+        Rectangle { height: 12px; }
+
+        // Condensed Traffic Stats Panel
         Rectangle {
             background: Theme.surface;
             border-radius: Theme.card-radius;
-            height: 60px;
+            height: 48px;
             
             HorizontalLayout {
                 padding-left: Theme.card-padding;
                 padding-right: Theme.card-padding;
-                alignment: space-between;
+                alignment: space-around;
                 
-                // Active Profile Info
+                // Uplink Speed & Total
                 HorizontalLayout {
-                    spacing: 8px;
-                    alignment: start;
+                    spacing: 6px;
+                    alignment: center;
                     
-                    Text {
-                        text: "Profile:";
-                        color: Theme.text-secondary;
-                        font-size: 14px;
-                        vertical-alignment: center;
+                    Icon {
+                        icon-source: Icons.upload;
+                        icon-color: Theme.warning;
+                        size: 14px;
                     }
-                    Text {
-                        text: active-profile;
-                        color: Theme.text-primary;
-                        font-size: 14px;
-                        font-weight: 600;
-                        vertical-alignment: center;
-                    }
-                }
-
-                // Core Stats / Delay (Mock or actual)
-                HorizontalLayout {
-                    spacing: 8px;
-                    alignment: end;
-                    
-                    Text {
-                        text: is-connected ? "System Proxy Active" : "Proxy Inactive";
-                        color: is-connected ? Theme.success : Theme.text-secondary;
-                        font-size: 12px;
-                        vertical-alignment: center;
-                    }
-                }
-            }
-        }
-
-        // Circular Connect Button Section
-        VerticalLayout {
-            alignment: center;
-            spacing: Theme.gap-md;
-            
-            Rectangle {
-                width: 180px;
-                height: 180px;
-                background: is-connected ? #0f3d30 : (is-connecting ? #3d300f : #2c1a24);
-                border-radius: 90px;
-                border-color: is-connected ? Theme.success : (is-connecting ? Theme.warning : Theme.danger);
-                border-width: 4px;
-                
-                // Connect/Disconnect inner button action
-                TouchArea {
-                    clicked => { root.toggle-connection(); }
                     
                     VerticalLayout {
                         alignment: center;
-                        spacing: 8px;
-                        
-                        // Icon Placeholder (Visual status)
-                        Rectangle {
-                            width: 40px;
-                            height: 40px;
-                            border-radius: 20px;
-                            background: is-connected ? Theme.success : (is-connecting ? Theme.warning : Theme.danger);
-                            
-                            Icon {
-                                icon-source: is-connected ? Icons.check : Icons.connect;
-                                icon-color: Theme.background;
-                                size: 24px;
-                                x: (parent.width - self.width) / 2;
-                                y: (parent.height - self.height) / 2;
-                            }
-                        }
-
                         Text {
-                            text: is-connected ? "Connected" : (is-connecting ? "Connecting..." : "Tap to Connect");
+                            text: upload-speed;
                             color: Theme.text-primary;
-                            font-size: 16px;
+                            font-size: Theme.font-primary;
                             font-weight: 700;
-                            horizontal-alignment: center;
                         }
-
                         Text {
-                            text: is-connected ? "Click to Disconnect" : "Core Stopped";
-                            color: Theme.text-secondary;
-                            font-size: 11px;
-                            horizontal-alignment: center;
+                            text: "Total: " + total-upload;
+                            color: Theme.text-muted;
+                            font-size: Theme.font-metadata;
                         }
                     }
                 }
-            }
-        }
 
-        // Traffic Stats Panel
-        HorizontalLayout {
-            spacing: Theme.gap-md;
-            height: 100px;
-            
-            // Downlink Card
-            Rectangle {
-                background: Theme.surface;
-                border-radius: Theme.card-radius;
-                
+                // Divider line
                 VerticalLayout {
-                    padding: Theme.card-padding;
-                    alignment: space-around;
+                    alignment: center;
+                    Rectangle {
+                        width: 1px;
+                        height: 24px;
+                        background: Theme.elevated;
+                    }
+                }
+
+                // Downlink Speed & Total
+                HorizontalLayout {
+                    spacing: 6px;
+                    alignment: center;
                     
-                    HorizontalLayout {
-                        spacing: 8px;
-                        Icon {
-                            icon-source: Icons.download;
-                            icon-color: Theme.accent;
-                            size: 18px;
+                    Icon {
+                        icon-source: Icons.download;
+                        icon-color: Theme.accent;
+                        size: 14px;
+                    }
+                    
+                    VerticalLayout {
+                        alignment: center;
+                        Text {
+                            text: download-speed;
+                            color: Theme.text-primary;
+                            font-size: Theme.font-primary;
+                            font-weight: 700;
                         }
-                        Text { text: "Download Speed"; color: Theme.text-secondary; font-size: 12px; }
-                    }
-                    Text {
-                        text: download-speed;
-                        color: Theme.text-primary;
-                        font-size: 20px;
-                        font-weight: 700;
-                    }
-                    Text {
-                        text: "Total: " + total-download;
-                        color: Theme.text-muted;
-                        font-size: 11px;
+                        Text {
+                            text: "Total: " + total-download;
+                            color: Theme.text-muted;
+                            font-size: Theme.font-metadata;
+                        }
                     }
                 }
             }
-
-            // Uplink Card
-            Rectangle {
-                background: Theme.surface;
-                border-radius: Theme.card-radius;
-                
-                VerticalLayout {
-                    padding: Theme.card-padding;
-                    alignment: space-around;
-                    
-                    HorizontalLayout {
-                        spacing: 8px;
-                        Icon {
-                            icon-source: Icons.upload;
-                            icon-color: Theme.warning;
-                            size: 18px;
-                        }
-                        Text { text: "Upload Speed"; color: Theme.text-secondary; font-size: 12px; }
-                    }
-                    Text {
-                        text: upload-speed;
-                        color: Theme.text-primary;
-                        font-size: 20px;
-                        font-weight: 700;
-                    }
-                    Text {
-                        text: "Total: " + total-upload;
-                        color: Theme.text-muted;
-                        font-size: 11px;
-                    }
-                }
-            }
-        }
-
-        // Bottom space filler
-        Rectangle {
-            background: transparent;
         }
     }
 }

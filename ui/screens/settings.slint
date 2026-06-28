@@ -13,6 +13,7 @@ export component SettingsScreen inherits Rectangle {
     callback toggle-system-proxy(bool);
     callback toggle-tun(bool);
     callback save-settings(string, string, string, string, string); // core, socks, http, dns, route_preset
+    callback trigger-about();
 
     background: Theme.background;
 
@@ -20,87 +21,114 @@ export component SettingsScreen inherits Rectangle {
         padding: Theme.padding-screen;
         spacing: Theme.gap-md;
 
-        Text {
-            text: "Application Settings";
-            color: Theme.text-primary;
-            font-size: 20px;
-            font-weight: 700;
+        // Title and About Button in header
+        HorizontalLayout {
+            alignment: space-between;
+            height: 28px;
+            
+            Text {
+                text: "Settings";
+                color: Theme.text-primary;
+                font-size: Theme.font-header;
+                font-weight: 800;
+                vertical-alignment: center;
+            }
+
+            IconButton {
+                icon-source: Icons.nav-about;
+                text: "About";
+                background-color: Theme.elevated;
+                hover-background-color: Theme.elevated.brighter(10%);
+                active-background-color: Theme.surface;
+                width: 60px;
+                height: 24px;
+                clicked => { root.trigger-about(); }
+            }
         }
 
         Flickable {
-            viewport-height: 520px;
+            viewport-height: 420px;
 
             VerticalLayout {
                 spacing: Theme.gap-md;
+                alignment: start;
 
-                // Mode toggles
+                // Network Integration Section
                 Rectangle {
                     background: Theme.surface;
                     border-radius: Theme.card-radius;
                     
                     VerticalLayout {
                         padding: Theme.card-padding;
-                        spacing: 12px;
+                        spacing: Theme.gap-md;
                         
-                        Text { text: "Network Integration"; color: Theme.text-primary; font-size: 14px; font-weight: 600; }
+                        Text { text: "Network Integration"; color: Theme.text-primary; font-size: Theme.font-primary; font-weight: 600; }
                         
                         // System Proxy Row
                         HorizontalLayout {
                             alignment: space-between;
-                            Text { text: "System Proxy (Redirect HTTP/SOCKS)"; color: Theme.text-secondary; font-size: 13px; vertical-alignment: center; }
+                            Text { text: "System Proxy"; color: Theme.text-secondary; font-size: Theme.font-primary; vertical-alignment: center; }
                             
                             // Toggle switch
                             Rectangle {
-                                width: 50px;
-                                height: 26px;
+                                width: 44px;
+                                height: 22px;
                                 background: root.system-proxy-enabled ? Theme.success : Theme.elevated;
-                                border-radius: 13px;
+                                border-radius: 11px;
                                 
                                 TouchArea {
                                     clicked => {
                                         root.system-proxy-enabled = !root.system-proxy-enabled;
                                         root.toggle-system-proxy(root.system-proxy-enabled);
                                     }
+                                }
+                                
+                                Rectangle {
+                                    width: 18px;
+                                    height: 18px;
+                                    background: #ffffff;
+                                    border-radius: 9px;
+                                    x: root.system-proxy-enabled ? 24px : 2px;
+                                    y: 2px;
                                     
-                                    Rectangle {
-                                        width: 22px;
-                                        height: 22px;
-                                        background: #ffffff;
-                                        border-radius: 11px;
-                                        x: root.system-proxy-enabled ? 26px : 2px;
-                                        y: 2px;
+                                    animate x {
+                                        duration: 120ms;
+                                        easing: ease-in-out;
                                     }
                                 }
                             }
                         }
 
-                        Rectangle { height: 1px; background: Theme.elevated; }
-
                         // TUN Mode Row
                         HorizontalLayout {
                             alignment: space-between;
-                            Text { text: "TUN Mode (Virtual Network Card)"; color: Theme.text-secondary; font-size: 13px; vertical-alignment: center; }
+                            Text { text: "TUN Mode"; color: Theme.text-secondary; font-size: Theme.font-primary; vertical-alignment: center; }
                             
                             // Toggle switch
                             Rectangle {
-                                width: 50px;
-                                height: 26px;
+                                width: 44px;
+                                height: 22px;
                                 background: root.tun-enabled ? Theme.success : Theme.elevated;
-                                border-radius: 13px;
+                                border-radius: 11px;
                                 
                                 TouchArea {
                                     clicked => {
                                         root.tun-enabled = !root.tun-enabled;
                                         root.toggle-tun(root.tun-enabled);
                                     }
+                                }
+                                
+                                Rectangle {
+                                    width: 18px;
+                                    height: 18px;
+                                    background: #ffffff;
+                                    border-radius: 9px;
+                                    x: root.tun-enabled ? 24px : 2px;
+                                    y: 2px;
                                     
-                                    Rectangle {
-                                        width: 22px;
-                                        height: 22px;
-                                        background: #ffffff;
-                                        border-radius: 11px;
-                                        x: root.tun-enabled ? 26px : 2px;
-                                        y: 2px;
+                                    animate x {
+                                        duration: 120ms;
+                                        easing: ease-in-out;
                                     }
                                 }
                             }
@@ -108,134 +136,158 @@ export component SettingsScreen inherits Rectangle {
                     }
                 }
 
-                // Core & Routing Group
+                // Core & Routing Section (Segmented Controls)
                 Rectangle {
                     background: Theme.surface;
                     border-radius: Theme.card-radius;
                     
                     VerticalLayout {
                         padding: Theme.card-padding;
-                        spacing: 12px;
+                        spacing: Theme.gap-md;
                         
-                        Text { text: "Core Configuration"; color: Theme.text-primary; font-size: 14px; font-weight: 600; }
+                        Text { text: "Engine & Routing"; color: Theme.text-primary; font-size: Theme.font-primary; font-weight: 600; }
                         
-                        // Core Select (xray / sing-box)
-                        HorizontalLayout {
-                            alignment: space-between;
-                            Text { text: "Core Engine Selection"; color: Theme.text-secondary; font-size: 13px; vertical-alignment: center; }
-                            
-                            HorizontalLayout {
-                                spacing: 8px;
-                                
-                                Rectangle {
-                                    width: 80px;
-                                    height: 28px;
-                                    background: root.core-type == "xray" ? Theme.accent : Theme.elevated;
-                                    border-radius: 4px;
-                                    TouchArea {
-                                        clicked => { root.core-type = "xray"; }
-                                        Text { text: "Xray-core"; color: #ffffff; font-size: 11px; font-weight: 600; horizontal-alignment: center; vertical-alignment: center; }
-                                    }
-                                }
-
-                                Rectangle {
-                                    width: 80px;
-                                    height: 28px;
-                                    background: root.core-type == "sing-box" ? Theme.accent : Theme.elevated;
-                                    border-radius: 4px;
-                                    TouchArea {
-                                        clicked => { root.core-type = "sing-box"; }
-                                        Text { text: "Sing-box"; color: #ffffff; font-size: 11px; font-weight: 600; horizontal-alignment: center; vertical-alignment: center; }
-                                    }
-                                }
-                            }
-                        }
-
-                        Rectangle { height: 1px; background: Theme.elevated; }
-
-                        // Routing Preset Select (Bypass LAN / Global / Custom)
-                        HorizontalLayout {
-                            alignment: space-between;
-                            Text { text: "Routing Mode"; color: Theme.text-secondary; font-size: 13px; vertical-alignment: center; }
-                            
-                            HorizontalLayout {
-                                spacing: 8px;
-                                
-                                Rectangle {
-                                    width: 100px;
-                                    height: 28px;
-                                    background: root.routing-preset == "Bypass LAN & China" ? Theme.accent : Theme.elevated;
-                                    border-radius: 4px;
-                                    TouchArea {
-                                        clicked => { root.routing-preset = "Bypass LAN & China"; }
-                                        Text { text: "Bypass China"; color: #ffffff; font-size: 11px; font-weight: 600; horizontal-alignment: center; vertical-alignment: center; }
-                                    }
-                                }
-
-                                Rectangle {
-                                    width: 70px;
-                                    height: 28px;
-                                    background: root.routing-preset == "Global" ? Theme.accent : Theme.elevated;
-                                    border-radius: 4px;
-                                    TouchArea {
-                                        clicked => { root.routing-preset = "Global"; }
-                                        Text { text: "Global"; color: #ffffff; font-size: 11px; font-weight: 600; horizontal-alignment: center; vertical-alignment: center; }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Inbounds Details
-                Rectangle {
-                    background: Theme.surface;
-                    border-radius: Theme.card-radius;
-                    
-                    VerticalLayout {
-                        padding: Theme.card-padding;
-                        spacing: 12px;
-                        
-                        Text { text: "Ports & DNS Settings"; color: Theme.text-primary; font-size: 14px; font-weight: 600; }
-                        
-                        HorizontalLayout {
-                            spacing: 12px;
-                            
-                            // Socks port
-                            VerticalLayout {
-                                spacing: 4px;
-                                Text { text: "SOCKS Port"; color: Theme.text-secondary; font-size: 11px; }
-                                SocksInput := TextInput {
-                                    text: root.socks-port;
-                                    color: Theme.text-primary;
-                                    font-size: 13px;
-                                    single-line: true;
-                                }
-                                Rectangle { height: 1px; background: Theme.elevated; }
-                            }
-
-                            // Http port
-                            VerticalLayout {
-                                spacing: 4px;
-                                Text { text: "HTTP Port"; color: Theme.text-secondary; font-size: 11px; }
-                                HttpInput := TextInput {
-                                    text: root.http-port;
-                                    color: Theme.text-primary;
-                                    font-size: 13px;
-                                    single-line: true;
-                                }
-                                Rectangle { height: 1px; background: Theme.elevated; }
-                            }
-                        }
-
-                        // DNS Server input
+                        // Core Select Segmented Control
                         VerticalLayout {
                             spacing: 4px;
-                            Text { text: "Primary DNS Server"; color: Theme.text-secondary; font-size: 11px; }
+                            Text { text: "Core Engine"; color: Theme.text-secondary; font-size: Theme.font-metadata; }
+                            
+                            HorizontalLayout {
+                                spacing: 4px;
+                                height: 24px;
+                                
+                                Rectangle {
+                                    background: root.core-type == "sing-box" ? Theme.accent : Theme.elevated;
+                                    border-radius: 4px;
+                                    
+                                    TouchArea {
+                                        clicked => { root.core-type = "sing-box"; }
+                                    }
+                                    
+                                    Text {
+                                        text: "Sing-box";
+                                        color: #ffffff;
+                                        font-size: Theme.font-metadata;
+                                        font-weight: 700;
+                                        x: (parent.width - self.width) / 2;
+                                        y: (parent.height - self.height) / 2;
+                                    }
+                                }
+
+                                Rectangle {
+                                    background: root.core-type == "xray" ? Theme.accent : Theme.elevated;
+                                    border-radius: 4px;
+                                    
+                                    TouchArea {
+                                        clicked => { root.core-type = "xray"; }
+                                    }
+                                    
+                                    Text {
+                                        text: "Xray-core";
+                                        color: #ffffff;
+                                        font-size: Theme.font-metadata;
+                                        font-weight: 700;
+                                        x: (parent.width - self.width) / 2;
+                                        y: (parent.height - self.height) / 2;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Routing Preset Segmented Control
+                        VerticalLayout {
+                            spacing: 4px;
+                            Text { text: "Routing Mode"; color: Theme.text-secondary; font-size: Theme.font-metadata; }
+                            
+                            HorizontalLayout {
+                                spacing: 4px;
+                                height: 24px;
+                                
+                                Rectangle {
+                                    background: root.routing-preset == "Bypass LAN & China" ? Theme.accent : Theme.elevated;
+                                    border-radius: 4px;
+                                    
+                                    TouchArea {
+                                        clicked => { root.routing-preset = "Bypass LAN & China"; }
+                                    }
+                                    
+                                    Text {
+                                        text: "Bypass China";
+                                        color: #ffffff;
+                                        font-size: Theme.font-metadata;
+                                        font-weight: 700;
+                                        x: (parent.width - self.width) / 2;
+                                        y: (parent.height - self.height) / 2;
+                                    }
+                                }
+
+                                Rectangle {
+                                    background: root.routing-preset == "Global" ? Theme.accent : Theme.elevated;
+                                    border-radius: 4px;
+                                    
+                                    TouchArea {
+                                        clicked => { root.routing-preset = "Global"; }
+                                    }
+                                    
+                                    Text {
+                                        text: "Global";
+                                        color: #ffffff;
+                                        font-size: Theme.font-metadata;
+                                        font-weight: 700;
+                                        x: (parent.width - self.width) / 2;
+                                        y: (parent.height - self.height) / 2;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Inbounds Details (Socks, Http, DNS)
+                Rectangle {
+                    background: Theme.surface;
+                    border-radius: Theme.card-radius;
+                    
+                    VerticalLayout {
+                        padding: Theme.card-padding;
+                        spacing: Theme.gap-md;
+                        
+                        Text { text: "Connection Ports & DNS"; color: Theme.text-primary; font-size: Theme.font-primary; font-weight: 600; }
+                        
+                        // SOCKS Input
+                        VerticalLayout {
+                            spacing: 2px;
+                            Text { text: "SOCKS Port"; color: Theme.text-secondary; font-size: Theme.font-metadata; }
+                            SocksInput := TextInput {
+                                text: root.socks-port;
+                                color: Theme.text-primary;
+                                font-size: Theme.font-primary;
+                                single-line: true;
+                            }
+                            Rectangle { height: 1px; background: Theme.elevated; }
+                        }
+
+                        // HTTP Input
+                        VerticalLayout {
+                            spacing: 2px;
+                            Text { text: "HTTP Port"; color: Theme.text-secondary; font-size: Theme.font-metadata; }
+                            HttpInput := TextInput {
+                                text: root.http-port;
+                                color: Theme.text-primary;
+                                font-size: Theme.font-primary;
+                                single-line: true;
+                            }
+                            Rectangle { height: 1px; background: Theme.elevated; }
+                        }
+
+                        // DNS Server Input
+                        VerticalLayout {
+                            spacing: 2px;
+                            Text { text: "Primary DNS"; color: Theme.text-secondary; font-size: Theme.font-metadata; }
                             DnsInput := TextInput {
                                 text: root.dns-server;
                                 color: Theme.text-primary;
-                                font-size: 13px;
+                                font-size: Theme.font-primary;
                                 single-line: true;
                             }
                             Rectangle { height: 1px; background: Theme.elevated; }
@@ -243,14 +295,14 @@ export component SettingsScreen inherits Rectangle {
                     }
                 }
 
-                // Save actions
+                // Save Configs Button
                 IconButton {
                     icon-source: Icons.save;
-                    text: "Save Configurations";
+                    text: "Save Configuration";
                     background-color: Theme.accent;
                     hover-background-color: Theme.accent.brighter(10%);
                     active-background-color: Theme.accent.darker(15%);
-                    height: 40px;
+                    height: 36px;
                     clicked => {
                         root.save-settings(
                             root.core-type,

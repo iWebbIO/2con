@@ -4,6 +4,8 @@ import { Icons, Icon, IconButton } from "../components/icons.slint";
 export component LogsScreen inherits Rectangle {
     in property <[string]> logs: [];
     callback clear-logs();
+    callback copy-logs();
+    callback close();
 
     background: Theme.background;
 
@@ -14,22 +16,38 @@ export component LogsScreen inherits Rectangle {
         // Title and Actions
         HorizontalLayout {
             alignment: space-between;
+            height: 28px;
             
-            Text {
-                text: "Real-time Logs";
-                color: Theme.text-primary;
-                font-size: 20px;
-                font-weight: 700;
+            HorizontalLayout {
+                spacing: 8px;
+                
+                IconButton {
+                    text: "Close";
+                    background-color: Theme.elevated;
+                    hover-background-color: Theme.elevated.brighter(10%);
+                    active-background-color: Theme.surface;
+                    width: 50px;
+                    height: 26px;
+                    clicked => { root.close(); }
+                }
+                
+                Text {
+                    text: "Logs Console";
+                    color: Theme.text-primary;
+                    font-size: Theme.font-header;
+                    font-weight: 800;
+                    vertical-alignment: center;
+                }
             }
 
             IconButton {
                 icon-source: Icons.delete;
-                text: "Clear Logs";
+                text: "Clear";
                 background-color: Theme.danger;
                 hover-background-color: Theme.danger.brighter(10%);
                 active-background-color: Theme.danger.darker(15%);
-                width: 120px;
-                height: 32px;
+                width: 60px;
+                height: 26px;
                 clicked => { root.clear-logs(); }
             }
         }
@@ -42,7 +60,7 @@ export component LogsScreen inherits Rectangle {
             border-color: Theme.elevated;
             
             Flickable {
-                viewport-height: logs.length * 20px + 20px;
+                viewport-height: logs.length * 22px + 20px;
                 
                 VerticalLayout {
                     padding: Theme.card-padding;
@@ -53,8 +71,32 @@ export component LogsScreen inherits Rectangle {
                         text: log-line;
                         color: Theme.text-secondary;
                         font-family: "Courier New";
-                        font-size: 12px;
-                        wrap: word-wrap;
+                        font-size: Theme.font-metadata;
+                        wrap: word-wrap; // Automatic text wrapping for 1:1 viewports
+                    }
+                }
+            }
+
+            // Floating Copy Button in top right corner
+            Rectangle {
+                x: parent.width - self.width - 8px;
+                y: 8px;
+                width: 28px;
+                height: 28px;
+                border-radius: 4px;
+                background: Theme.surface.with-alpha(0.85);
+                border-width: 1px;
+                border-color: Theme.elevated;
+                
+                TouchArea {
+                    clicked => { root.copy-logs(); }
+                    
+                    Icon {
+                        icon-source: Icons.clipboard;
+                        icon-color: Theme.text-primary;
+                        size: 14px;
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
                     }
                 }
             }

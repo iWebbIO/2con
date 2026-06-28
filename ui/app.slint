@@ -6,13 +6,14 @@ import { LogsScreen } from "screens/logs.slint";
 import { AboutScreen } from "screens/about.slint";
 import { Theme } from "components/theme.slint";
 import { Icons, Icon, IconButton } from "components/icons.slint";
+import { HorizontalBox } from "std-widgets.slint";
 
 export { ProfileUiItem, ProxyUiItem }
 
 export component AppWindow inherits Window {
-    title: "2con Desktop Proxy Client";
-    width: 900px;
-    height: 620px;
+    title: "2con client";
+    width: 400px;
+    height: 400px;
     background: Theme.background;
 
     // Global Properties
@@ -28,7 +29,7 @@ export component AppWindow inherits Window {
     in-out property <bool> is-connected: false;
     in-out property <bool> is-connecting: false;
 
-    // Profiles Properties
+    // Profiles Properties (Subscriptions represented)
     in-out property <[ProfileUiItem]> profiles: [];
 
     // Proxies Properties
@@ -46,6 +47,17 @@ export component AppWindow inherits Window {
     // Logs
     in-out property <[string]> logs: [];
 
+    // Overlay State Variables
+    in-out property <bool> show-logs: false;
+    in-out property <bool> show-about: false;
+    in-out property <bool> show-quick-select: false;
+    in-out property <bool> show-sub-menu: false;
+    
+    // Selected sub properties for bottom sheet
+    in-out property <int> selected-sub-id: -1;
+    in-out property <string> selected-sub-name: "";
+    in-out property <string> selected-sub-url: "";
+
     // Callbacks to Rust
     callback toggle-connection();
     callback select-profile(int);
@@ -59,206 +71,19 @@ export component AppWindow inherits Window {
     callback toggle-tun(bool);
     callback save-settings(string, string, string, string, string);
     callback clear-logs();
+    callback copy-logs();
+    callback copy-text(string);
 
-    HorizontalLayout {
-        // Navigation Rail (Left Side)
-        Rectangle {
-            width: 80px;
-            background: Theme.surface;
-            
-            VerticalLayout {
-                padding-top: Theme.padding-screen;
-                padding-bottom: Theme.padding-screen;
-                spacing: Theme.nav-spacing;
-                alignment: start;
-
-                // Brand Icon
-                HorizontalLayout {
-                    alignment: center;
-                    Rectangle {
-                        width: 44px;
-                        height: 44px;
-                        border-radius: 22px;
-                        background: Theme.accent;
-                        
-                        Text {
-                            text: "2C";
-                            color: #ffffff;
-                            font-size: 16px;
-                            font-weight: 900;
-                            x: (parent.width - self.width) / 2;
-                            y: (parent.height - self.height) / 2;
-                        }
-                    }
-                }
-
-                Rectangle { height: 10px; } // spacer
-
-                // Home Nav Item
-                VerticalLayout {
-                    spacing: 4px;
-                    HorizontalLayout {
-                        alignment: center;
-                        Rectangle {
-                            width: 50px;
-                            height: 50px;
-                            border-radius: 10px;
-                            background: root.active-page-index == 0 ? Theme.elevated : transparent;
-                            
-                            TouchArea {
-                                clicked => { root.active-page-index = 0; }
-                                Icon {
-                                    icon-source: Icons.nav-home;
-                                    icon-color: root.active-page-index == 0 ? Theme.text-primary : Theme.text-secondary;
-                                    size: 24px;
-                                    x: (parent.width - self.width) / 2;
-                                    y: (parent.height - self.height) / 2;
-                                }
-                            }
-                        }
-                    }
-                    Text { text: "Home"; color: root.active-page-index == 0 ? Theme.text-primary : Theme.text-secondary; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
-                }
-
-                // Profiles Nav Item
-                VerticalLayout {
-                    spacing: 4px;
-                    HorizontalLayout {
-                        alignment: center;
-                        Rectangle {
-                            width: 50px;
-                            height: 50px;
-                            border-radius: 10px;
-                            background: root.active-page-index == 1 ? Theme.elevated : transparent;
-                            
-                            TouchArea {
-                                clicked => { root.active-page-index = 1; }
-                                Icon {
-                                    icon-source: Icons.nav-profiles;
-                                    icon-color: root.active-page-index == 1 ? Theme.text-primary : Theme.text-secondary;
-                                    size: 24px;
-                                    x: (parent.width - self.width) / 2;
-                                    y: (parent.height - self.height) / 2;
-                                }
-                            }
-                        }
-                    }
-                    Text { text: "Profiles"; color: root.active-page-index == 1 ? Theme.text-primary : Theme.text-secondary; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
-                }
-
-                // Proxies Nav Item
-                VerticalLayout {
-                    spacing: 4px;
-                    HorizontalLayout {
-                        alignment: center;
-                        Rectangle {
-                            width: 50px;
-                            height: 50px;
-                            border-radius: 10px;
-                            background: root.active-page-index == 2 ? Theme.elevated : transparent;
-                            
-                            TouchArea {
-                                clicked => { root.active-page-index = 2; }
-                                Icon {
-                                    icon-source: Icons.nav-proxies;
-                                    icon-color: root.active-page-index == 2 ? Theme.text-primary : Theme.text-secondary;
-                                    size: 24px;
-                                    x: (parent.width - self.width) / 2;
-                                    y: (parent.height - self.height) / 2;
-                                }
-                            }
-                        }
-                    }
-                    Text { text: "Proxies"; color: root.active-page-index == 2 ? Theme.text-primary : Theme.text-secondary; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
-                }
-
-                // Settings Nav Item
-                VerticalLayout {
-                    spacing: 4px;
-                    HorizontalLayout {
-                        alignment: center;
-                        Rectangle {
-                            width: 50px;
-                            height: 50px;
-                            border-radius: 10px;
-                            background: root.active-page-index == 3 ? Theme.elevated : transparent;
-                            
-                            TouchArea {
-                                clicked => { root.active-page-index = 3; }
-                                Icon {
-                                    icon-source: Icons.nav-settings;
-                                    icon-color: root.active-page-index == 3 ? Theme.text-primary : Theme.text-secondary;
-                                    size: 24px;
-                                    x: (parent.width - self.width) / 2;
-                                    y: (parent.height - self.height) / 2;
-                                }
-                            }
-                        }
-                    }
-                    Text { text: "Settings"; color: root.active-page-index == 3 ? Theme.text-primary : Theme.text-secondary; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
-                }
-
-                // Logs Nav Item
-                VerticalLayout {
-                    spacing: 4px;
-                    HorizontalLayout {
-                        alignment: center;
-                        Rectangle {
-                            width: 50px;
-                            height: 50px;
-                            border-radius: 10px;
-                            background: root.active-page-index == 4 ? Theme.elevated : transparent;
-                            
-                            TouchArea {
-                                clicked => { root.active-page-index = 4; }
-                                Icon {
-                                    icon-source: Icons.nav-logs;
-                                    icon-color: root.active-page-index == 4 ? Theme.text-primary : Theme.text-secondary;
-                                    size: 24px;
-                                    x: (parent.width - self.width) / 2;
-                                    y: (parent.height - self.height) / 2;
-                                }
-                            }
-                        }
-                    }
-                    Text { text: "Logs"; color: root.active-page-index == 4 ? Theme.text-primary : Theme.text-secondary; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
-                }
-
-                // About Nav Item
-                VerticalLayout {
-                    spacing: 4px;
-                    HorizontalLayout {
-                        alignment: center;
-                        Rectangle {
-                            width: 50px;
-                            height: 50px;
-                            border-radius: 10px;
-                            background: root.active-page-index == 5 ? Theme.elevated : transparent;
-                            
-                            TouchArea {
-                                clicked => { root.active-page-index = 5; }
-                                Icon {
-                                    icon-source: Icons.nav-about;
-                                    icon-color: root.active-page-index == 5 ? Theme.text-primary : Theme.text-secondary;
-                                    size: 24px;
-                                    x: (parent.width - self.width) / 2;
-                                    y: (parent.height - self.height) / 2;
-                                }
-                            }
-                        }
-                    }
-                    Text { text: "About"; color: root.active-page-index == 5 ? Theme.text-primary : Theme.text-secondary; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
-                }
-            }
-        }
-
-        // Screen Content (Switched based on active-page-index)
+    // Root Layout Structure
+    VerticalLayout {
+        // Main Screen Area (Tab switching)
         Rectangle {
             background: Theme.background;
             
             if root.active-page-index == 0 : HomeScreen {
                 connection-status: root.connection-status;
                 active-profile: root.active-profile;
+                routing-mode: root.routing-preset;
                 download-speed: root.download-speed;
                 upload-speed: root.upload-speed;
                 total-download: root.total-download;
@@ -266,19 +91,27 @@ export component AppWindow inherits Window {
                 is-connected: root.is-connected;
                 is-connecting: root.is-connecting;
                 toggle-connection => { root.toggle-connection(); }
+                trigger-quick-select => { root.show-quick-select = true; }
+                trigger-logs => { root.show-logs = true; }
             }
-            if root.active-page-index == 1 : ProfilesScreen {
+            if root.active-page-index == 1 : ProxiesScreen {
+                proxies: root.proxies;
+                select-proxy(id) => { root.select-proxy(id); }
+                test-all-latency => { root.test-all-latency(); }
+            }
+            if root.active-page-index == 2 : ProfilesScreen {
                 profiles: root.profiles;
                 select-profile(id) => { root.select-profile(id); }
                 delete-profile(id) => { root.delete-profile(id); }
                 ping-profile(id) => { root.ping-profile(id); }
                 import-subscription(name, url) => { root.import-subscription(name, url); }
                 import-clipboard => { root.import-clipboard(); }
-            }
-            if root.active-page-index == 2 : ProxiesScreen {
-                proxies: root.proxies;
-                select-proxy(id) => { root.select-proxy(id); }
-                test-all-latency => { root.test-all-latency(); }
+                show-sub-menu(sub-id, name, url) => {
+                    root.selected-sub-id = sub-id;
+                    root.selected-sub-name = name;
+                    root.selected-sub-url = url;
+                    root.show-sub-menu = true;
+                }
             }
             if root.active-page-index == 3 : SettingsScreen {
                 core-type: root.core-type;
@@ -291,12 +124,389 @@ export component AppWindow inherits Window {
                 toggle-system-proxy(enabled) => { root.toggle-system-proxy(enabled); }
                 toggle-tun(enabled) => { root.toggle-tun(enabled); }
                 save-settings(core, socks, http, dns, route) => { root.save-settings(core, socks, http, dns, route); }
+                trigger-about => { root.show-about = true; }
             }
-            if root.active-page-index == 4 : LogsScreen {
-                logs: root.logs;
-                clear-logs => { root.clear-logs(); }
+        }
+
+        // HorizontalBox Bottom Navigation Bar (heavily condensed)
+        HorizontalBox {
+            height: 52px;
+            padding-top: 4px;
+            padding-bottom: 4px;
+            padding-left: Theme.padding-screen;
+            padding-right: Theme.padding-screen;
+            spacing: Theme.gap-md;
+            
+            // Tab 0: Home
+            Rectangle {
+                background: root.active-page-index == 0 ? Theme.elevated : transparent;
+                border-radius: 4px;
+                
+                TouchArea {
+                    clicked => { root.active-page-index = 0; }
+                }
+                
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 2px;
+                    HorizontalLayout {
+                        alignment: center;
+                        Icon {
+                            icon-source: Icons.nav-home;
+                            icon-color: root.active-page-index == 0 ? Theme.accent : Theme.text-secondary;
+                            size: 18px;
+                        }
+                    }
+                    Text {
+                        text: "Home";
+                        color: root.active-page-index == 0 ? Theme.accent : Theme.text-secondary;
+                        font-size: Theme.font-metadata;
+                        horizontal-alignment: center;
+                    }
+                }
             }
-            if root.active-page-index == 5 : AboutScreen {}
+
+            // Tab 1: Proxies
+            Rectangle {
+                background: root.active-page-index == 1 ? Theme.elevated : transparent;
+                border-radius: 4px;
+                
+                TouchArea {
+                    clicked => { root.active-page-index = 1; }
+                }
+                
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 2px;
+                    HorizontalLayout {
+                        alignment: center;
+                        Icon {
+                            icon-source: Icons.nav-proxies;
+                            icon-color: root.active-page-index == 1 ? Theme.accent : Theme.text-secondary;
+                            size: 18px;
+                        }
+                    }
+                    Text {
+                        text: "Proxies";
+                        color: root.active-page-index == 1 ? Theme.accent : Theme.text-secondary;
+                        font-size: Theme.font-metadata;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+
+            // Tab 2: Profiles (Subscriptions)
+            Rectangle {
+                background: root.active-page-index == 2 ? Theme.elevated : transparent;
+                border-radius: 4px;
+                
+                TouchArea {
+                    clicked => { root.active-page-index = 2; }
+                }
+                
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 2px;
+                    HorizontalLayout {
+                        alignment: center;
+                        Icon {
+                            icon-source: Icons.nav-profiles;
+                            icon-color: root.active-page-index == 2 ? Theme.accent : Theme.text-secondary;
+                            size: 18px;
+                        }
+                    }
+                    Text {
+                        text: "Profiles";
+                        color: root.active-page-index == 2 ? Theme.accent : Theme.text-secondary;
+                        font-size: Theme.font-metadata;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+
+            // Tab 3: Settings
+            Rectangle {
+                background: root.active-page-index == 3 ? Theme.elevated : transparent;
+                border-radius: 4px;
+                
+                TouchArea {
+                    clicked => { root.active-page-index = 3; }
+                }
+                
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 2px;
+                    HorizontalLayout {
+                        alignment: center;
+                        Icon {
+                            icon-source: Icons.nav-settings;
+                            icon-color: root.active-page-index == 3 ? Theme.accent : Theme.text-secondary;
+                            size: 18px;
+                        }
+                    }
+                    Text {
+                        text: "Settings";
+                        color: root.active-page-index == 3 ? Theme.accent : Theme.text-secondary;
+                        font-size: Theme.font-metadata;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+
+    // --- Strict Z-Index Slide-up Overlays ---
+
+    // 1. Logs Overlay Console
+    Rectangle {
+        x: 0;
+        y: root.show-logs ? 0 : 400px;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        
+        animate y {
+            duration: 200ms;
+            easing: ease-out;
+        }
+        
+        LogsScreen {
+            logs: root.logs;
+            clear-logs => { root.clear-logs(); }
+            copy-logs => { root.copy-logs(); }
+            close => { root.show-logs = false; }
+        }
+    }
+
+    // 2. About Overlay Sheet
+    Rectangle {
+        x: 0;
+        y: root.show-about ? 0 : 400px;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        
+        animate y {
+            duration: 200ms;
+            easing: ease-out;
+        }
+        
+        AboutScreen {
+            close => { root.show-about = false; }
+        }
+    }
+
+    // 3. Routing Quick-Select Bottom Sheet
+    Rectangle {
+        x: 0;
+        y: root.show-quick-select ? 0 : 400px;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        
+        animate y {
+            duration: 200ms;
+            easing: ease-out;
+        }
+        
+        // Semi-transparent backdrop (tap to dismiss)
+        if root.show-quick-select : TouchArea {
+            x: 0;
+            y: 0;
+            width: 100%;
+            height: 100%;
+            clicked => { root.show-quick-select = false; }
+        }
+        
+        // Bottom Sheet Box
+        Rectangle {
+            y: parent.height - self.height;
+            width: 100%;
+            height: 190px;
+            background: Theme.surface;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            border-width: 1px;
+            border-color: Theme.elevated;
+            
+            VerticalLayout {
+                padding: Theme.padding-screen;
+                spacing: Theme.gap-md;
+                
+                // Sheet Header
+                HorizontalLayout {
+                    alignment: space-between;
+                    height: 24px;
+                    Text {
+                        text: "Quick Controls";
+                        color: Theme.text-primary;
+                        font-size: Theme.font-primary;
+                        font-weight: 700;
+                        vertical-alignment: center;
+                    }
+                    IconButton {
+                        text: "Done";
+                        width: 48px;
+                        height: 20px;
+                        clicked => { root.show-quick-select = false; }
+                    }
+                }
+                
+                // Routing Mode quick toggle segmented buttons
+                VerticalLayout {
+                    spacing: 2px;
+                    Text { text: "Routing Preset"; color: Theme.text-secondary; font-size: Theme.font-metadata; }
+                    HorizontalLayout {
+                        spacing: 4px;
+                        height: 24px;
+                        
+                        Rectangle {
+                            background: root.routing-preset == "Bypass LAN & China" ? Theme.accent : Theme.elevated;
+                            border-radius: 4px;
+                            TouchArea {
+                                clicked => {
+                                    root.routing-preset = "Bypass LAN & China";
+                                    root.save-settings(root.core-type, root.socks-port, root.http-port, root.dns-server, root.routing-preset);
+                                }
+                                Text { text: "Bypass China"; color: #ffffff; font-size: Theme.font-metadata; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                        }
+                        
+                        Rectangle {
+                           background: root.routing-preset == "Global" ? Theme.accent : Theme.elevated;
+                           border-radius: 4px;
+                           TouchArea {
+                               clicked => {
+                                   root.routing-preset = "Global";
+                                   root.save-settings(root.core-type, root.socks-port, root.http-port, root.dns-server, root.routing-preset);
+                               }
+                               Text { text: "Global"; color: #ffffff; font-size: Theme.font-metadata; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; }
+                           }
+                        }
+                    }
+                }
+                
+                // Active node indicator & Redirect button
+                VerticalLayout {
+                    spacing: Theme.gap-md;
+                    alignment: center;
+                    
+                    Text {
+                        text: "Active Node: " + root.active-profile;
+                        color: Theme.text-secondary;
+                        font-size: Theme.font-metadata;
+                        overflow: elide;
+                    }
+                    
+                    IconButton {
+                        icon-source: Icons.nav-proxies;
+                        text: "Select Nodes / Proxies";
+                        background-color: Theme.elevated;
+                        hover-background-color: Theme.elevated.brighter(10%);
+                        active-background-color: Theme.surface;
+                        height: 28px;
+                        clicked => {
+                            root.show-quick-select = false;
+                            root.active-page-index = 1; // Go to Proxies tab
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 4. Subscription Menu Options Bottom Sheet
+    Rectangle {
+        x: 0;
+        y: root.show-sub-menu ? 0 : 400px;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        
+        animate y {
+            duration: 200ms;
+            easing: ease-out;
+        }
+        
+        // Semi-transparent backdrop (tap to dismiss)
+        if root.show-sub-menu : TouchArea {
+            x: 0;
+            y: 0;
+            width: 100%;
+            height: 100%;
+            clicked => { root.show-sub-menu = false; }
+        }
+        
+        // Bottom Sheet Content
+        Rectangle {
+            y: parent.height - self.height;
+            width: 100%;
+            height: 120px;
+            background: Theme.surface;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            border-width: 1px;
+            border-color: Theme.elevated;
+            
+            VerticalLayout {
+                padding: Theme.padding-screen;
+                spacing: Theme.gap-md;
+                
+                Text {
+                    text: "Subscription: " + root.selected-sub-name;
+                    color: Theme.text-primary;
+                    font-size: Theme.font-primary;
+                    font-weight: 700;
+                    overflow: elide;
+                }
+                
+                HorizontalLayout {
+                    spacing: Theme.gap-md;
+                    alignment: center;
+                    
+                    // Update Action
+                    IconButton {
+                        icon-source: Icons.fetch;
+                        text: "Fetch";
+                        background-color: Theme.accent;
+                        hover-background-color: Theme.accent.brighter(10%);
+                        active-background-color: Theme.accent.darker(15%);
+                        height: 28px;
+                        clicked => {
+                            root.show-sub-menu = false;
+                            root.import-subscription(root.selected-sub-name, root.selected-sub-url);
+                        }
+                    }
+                    
+                    // Share/Upload Action (Mock link copying)
+                    IconButton {
+                        icon-source: Icons.upload;
+                        text: "Copy Link";
+                        background-color: Theme.elevated;
+                        hover-background-color: Theme.elevated.brighter(10%);
+                        active-background-color: Theme.surface;
+                        height: 28px;
+                        clicked => {
+                            root.show-sub-menu = false;
+                            root.copy-text(root.selected-sub-url);
+                        }
+                    }
+                    
+                    // Delete Action
+                    IconButton {
+                        icon-source: Icons.delete;
+                        text: "Delete";
+                        background-color: Theme.danger;
+                        hover-background-color: Theme.danger.brighter(10%);
+                        active-background-color: Theme.danger.darker(15%);
+                        height: 28px;
+                        clicked => {
+                            root.show-sub-menu = false;
+                            root.delete-profile(root.selected-sub-id);
+                        }
+                    }
+                }
+            }
         }
     }
 }

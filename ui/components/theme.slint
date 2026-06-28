@@ -13,13 +13,18 @@ export global Theme {
     in-out property <color> warning: #ecc94b;
     in-out property <color> danger: #e53e3e;
     
-    // Spacing Scale Tokens
-    in-out property <length> padding-screen: 24px;
-    in-out property <length> gap-md: 16px;
-    in-out property <length> gap-lg: 24px;
-    in-out property <length> nav-spacing: 20px;
+    // Spacing Scale Tokens (reduced by 30%-50%, using 4px/8px/12px increments)
+    in-out property <length> padding-screen: 12px;
+    in-out property <length> gap-md: 8px;
+    in-out property <length> gap-lg: 12px;
+    in-out property <length> nav-spacing: 8px;
     
     // Card Sizing Tokens
-    in-out property <length> card-radius: 12px;
-    in-out property <length> card-padding: 16px;
+    in-out property <length> card-radius: 6px;
+    in-out property <length> card-padding: 8px;
+
+    // Strict Two-Tier Typography system
+    in-out property <length> font-primary: 12px;
+    in-out property <length> font-metadata: 9.5px;
+    in-out property <length> font-header: 14px;
 }

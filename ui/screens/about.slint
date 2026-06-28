@@ -1,27 +1,46 @@
 import { Theme } from "../components/theme.slint";
-import { Icons, Icon } from "../components/icons.slint";
+import { Icons, Icon, IconButton } from "../components/icons.slint";
 
 export component AboutScreen inherits Rectangle {
+    callback close();
     background: Theme.background;
 
     VerticalLayout {
         padding: Theme.padding-screen;
-        spacing: Theme.gap-lg;
-        alignment: center;
+        spacing: Theme.gap-md;
+        alignment: start;
+
+        // Top Close Bar
+        HorizontalLayout {
+            height: 28px;
+            alignment: start;
+            
+            IconButton {
+                text: "Close";
+                background-color: Theme.elevated;
+                hover-background-color: Theme.elevated.brighter(10%);
+                active-background-color: Theme.surface;
+                width: 50px;
+                height: 26px;
+                clicked => { root.close(); }
+            }
+        }
+
+        Rectangle { height: 10px; }
 
         // Logo / Icon
         HorizontalLayout {
             alignment: center;
             Rectangle {
-                width: 80px;
-                height: 80px;
+                width: 64px;
+                height: 64px;
                 background: Theme.accent;
-                border-radius: 40px;
+                border-radius: 32px;
                 
                 Text {
                     text: "2C";
                     color: #ffffff;
-                    font-size: 32px;
+                    font-size: 24px;
                     font-weight: 800;
                     x: (parent.width - self.width) / 2;
                     y: (parent.height - self.height) / 2;
@@ -29,15 +48,17 @@ export component AboutScreen inherits Rectangle {
             }
         }
 
+        Rectangle { height: 4px; }
+
         // App Details
         VerticalLayout {
-            spacing: 8px;
+            spacing: 4px;
             alignment: center;
 
             Text {
-                text: "2con Desktop Client";
+                text: "2con Proxy Client";
                 color: Theme.text-primary;
-                font-size: 22px;
+                font-size: Theme.font-header;
                 font-weight: 700;
                 horizontal-alignment: center;
             }
@@ -45,17 +66,19 @@ export component AboutScreen inherits Rectangle {
             Text {
                 text: "Version 1.0.0 (Rust + Slint)";
                 color: Theme.text-secondary;
-                font-size: 14px;
+                font-size: Theme.font-metadata;
                 horizontal-alignment: center;
             }
 
             Text {
-                text: "A premium proxy manager powered by xray-core & sing-box";
+                text: "A premium proxy manager powered by xray & sing-box";
                 color: Theme.text-muted;
-                font-size: 12px;
+                font-size: Theme.font-metadata;
                 horizontal-alignment: center;
             }
         }
+
+        Rectangle { height: 10px; }
 
         // Links / Credits Card
         HorizontalLayout {
@@ -63,32 +86,32 @@ export component AboutScreen inherits Rectangle {
             Rectangle {
                 background: Theme.surface;
                 border-radius: Theme.card-radius;
-                width: 320px;
-                height: 120px;
+                width: 280px;
+                height: 100px;
 
                 VerticalLayout {
                     padding: Theme.card-padding;
-                    spacing: 12px;
+                    spacing: 6px;
                     alignment: center;
 
                     Text {
                         text: "License: MIT License";
                         color: Theme.text-primary;
-                        font-size: 12px;
+                        font-size: Theme.font-metadata;
                         horizontal-alignment: center;
                     }
 
                     Text {
                         text: "Frameworks: Slint UI & Tokio Async Engine";
                         color: Theme.text-primary;
-                        font-size: 12px;
+                        font-size: Theme.font-metadata;
                         horizontal-alignment: center;
                     }
 
                     Text {
                         text: "GitHub: github.com/iWebbIO/2con";
                         color: Theme.accent;
-                        font-size: 12px;
+                        font-size: Theme.font-metadata;
                         font-weight: 600;
                         horizontal-alignment: center;
                     }
