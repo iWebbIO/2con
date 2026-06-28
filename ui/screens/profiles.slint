@@ -4,7 +4,7 @@ import { Icons, Icon, IconButton } from "../components/icons.slint";
 export struct ProfileUiItem {
     id: int,
     name: string,
-    protocol: string,
+    protocol: string,   // "Subscription" or "LocalGroup" — acts as the type discriminator
     address: string,
     port: int,
     delay: string,
@@ -15,13 +15,17 @@ export component ProfilesScreen inherits Rectangle {
     in property <[ProfileUiItem]> profiles: [];
     in-out property <string> new-sub-url: "";
     in-out property <string> new-sub-name: "";
+    in-out property <string> new-group-name: "";
     
     callback select-profile(int);
     callback delete-profile(int);
     callback ping-profile(int);
     callback import-subscription(string, string); // name, url
     callback import-clipboard();
-    callback show-sub-menu(int, string, string); // id, name, url
+    callback create-local-group(string);          // group name
+    callback rename-profile(int, string);         // id, new name
+    callback add-config-to-group(int);            // sub_id
+    callback show-sub-menu(int, string, string, string); // id, name, url, type ("Subscription"|"LocalGroup")
 
     background: Theme.background;
 
@@ -31,16 +35,18 @@ export component ProfilesScreen inherits Rectangle {
 
         // Header Title
         Text {
-            text: "Subscriptions";
+            text: "Profiles";
             color: Theme.text-primary;
             font-size: Theme.font-header;
             font-weight: 800;
         }
 
-        // Import compact section
+        // Import Subscription compact section
         Rectangle {
             background: Theme.surface;
             border-radius: Theme.card-radius;
+            border-width: 1px;
+            border-color: Theme.border;
             
             VerticalLayout {
                 padding: Theme.card-padding;
@@ -67,7 +73,7 @@ export component ProfilesScreen inherits Rectangle {
                             single-line: true;
                             edited => { root.new-sub-name = self.text; }
                         }
-                        Rectangle { height: 1px; background: Theme.elevated; }
+                        Rectangle { height: 1px; background: Theme.border; }
                     }
 
                     // URL Input
@@ -81,7 +87,7 @@ export component ProfilesScreen inherits Rectangle {
                             single-line: true;
                             edited => { root.new-sub-url = self.text; }
                         }
-                        Rectangle { height: 1px; background: Theme.elevated; }
+                        Rectangle { height: 1px; background: Theme.border; }
                     }
                 }
 
@@ -103,9 +109,9 @@ export component ProfilesScreen inherits Rectangle {
                     IconButton {
                         icon-source: Icons.fetch;
                         text: "Fetch";
-                        background-color: Theme.accent;
-                        hover-background-color: Theme.accent.brighter(10%);
-                        active-background-color: Theme.accent.darker(15%);
+                        background-color: Theme.accent-cyan;
+                        hover-background-color: Theme.accent-cyan.brighter(10%);
+                        active-background-color: Theme.accent-cyan.darker(15%);
                         width: 70px;
                         height: 24px;
                         clicked => { 
@@ -118,19 +124,66 @@ export component ProfilesScreen inherits Rectangle {
             }
         }
 
-        // Scrollable List of Subscriptions (profiles representation)
+        // Create Local Group compact section
+        Rectangle {
+            background: Theme.accent-purple.with-alpha(0.1);
+            border-radius: Theme.card-radius;
+            border-width: 1px;
+            border-color: Theme.accent-purple.with-alpha(0.3);
+            height: 36px;
+
+            HorizontalLayout {
+                padding-left: Theme.card-padding;
+                padding-right: Theme.card-padding;
+                alignment: space-between;
+
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 2px;
+                    Text { text: "New Local Group"; color: Theme.text-secondary; font-size: Theme.font-metadata; }
+                    GroupNameInput := TextInput {
+                        text: root.new-group-name;
+                        color: Theme.text-primary;
+                        font-size: Theme.font-primary;
+                        single-line: true;
+                        edited => { root.new-group-name = self.text; }
+                    }
+                }
+
+                VerticalLayout {
+                    alignment: center;
+                    IconButton {
+                        text: "+ Create";
+                        background-color: Theme.accent-purple.with-alpha(0.4);
+                        hover-background-color: Theme.accent-purple.with-alpha(0.6);
+                        active-background-color: Theme.accent-purple.with-alpha(0.2);
+                        width: 60px;
+                        height: 22px;
+                        clicked => {
+                            root.create-local-group(root.new-group-name);
+                            root.new-group-name = "";
+                        }
+                    }
+                }
+            }
+        }
+
+        // Scrollable List of profiles/subscriptions
         Flickable {
-            viewport-height: profiles.length * 44px;
+            viewport-height: profiles.length * 46px;
             
             VerticalLayout {
                 spacing: 4px;
                 alignment: start;
                 
                 for profile[idx] in profiles : Rectangle {
-                    height: 40px;
-                    background: profile.is-active ? Theme.elevated : Theme.surface;
+                    height: 42px;
+                    background: Theme.surface;
                     border-radius: Theme.card-radius;
-                    border-color: profile.is-active ? Theme.accent : transparent;
+                    // Subscription: cyan border; LocalGroup: purple border; active: brighter
+                    border-color: profile.is_active
+                        ? (profile.protocol == "LocalGroup" ? Theme.accent-purple : Theme.accent-cyan)
+                        : (profile.protocol == "LocalGroup" ? Theme.accent-purple.with-alpha(0.3) : Theme.border);
                     border-width: 1px;
                     
                     HorizontalLayout {
@@ -138,7 +191,7 @@ export component ProfilesScreen inherits Rectangle {
                         padding-right: Theme.card-padding;
                         alignment: space-between;
                         
-                        // Left: active indicator, name, and timestamp
+                        // Left: active dot + name + subtitle row
                         HorizontalLayout {
                             spacing: 8px;
                             alignment: start;
@@ -149,7 +202,9 @@ export component ProfilesScreen inherits Rectangle {
                                     width: 6px;
                                     height: 6px;
                                     border-radius: 3px;
-                                    background: profile.is-active ? Theme.success : Theme.text-muted;
+                                    background: profile.is_active
+                                        ? (profile.protocol == "LocalGroup" ? Theme.accent-purple : Theme.accent-cyan)
+                                        : Theme.text-secondary;
                                 }
                             }
 
@@ -165,15 +220,27 @@ export component ProfilesScreen inherits Rectangle {
                                     overflow: elide;
                                 }
                                 
-                                Text {
-                                    text: "Updated: " + profile.delay;
-                                    color: Theme.text-muted;
-                                    font-size: Theme.font-metadata;
+                                // Subscription shows "Updated: <ts>" / LocalGroup shows "Local Group"
+                                HorizontalLayout {
+                                    spacing: 4px;
+                                    Text {
+                                        text: profile.protocol == "LocalGroup" ? "Local Group" : ("Updated: " + profile.delay);
+                                        color: profile.protocol == "LocalGroup" ? Theme.accent-purple : Theme.text-secondary;
+                                        font-size: Theme.font-metadata;
+                                        font-weight: profile.protocol == "LocalGroup" ? 600 : 400;
+                                    }
+                                    // Lock icon badge for Subscription (read-only indicator)
+                                    if profile.protocol == "Subscription" : Text {
+                                        text: "🔒";
+                                        font-size: 7px;
+                                        vertical-alignment: center;
+                                        color: Theme.text-secondary;
+                                    }
                                 }
                             }
                         }
 
-                        // Right: Vertical Ellipsis Options menu trigger
+                        // Right: Vertical Ellipsis menu trigger
                         VerticalLayout {
                             alignment: center;
                             
@@ -184,7 +251,14 @@ export component ProfilesScreen inherits Rectangle {
                                 background: transparent;
                                 
                                 TouchArea {
-                                    clicked => { root.show-sub-menu(profile.id, profile.name, profile.address); }
+                                    clicked => {
+                                        root.show-sub-menu(
+                                            profile.id,
+                                            profile.name,
+                                            profile.address,
+                                            profile.protocol  // passes "Subscription" or "LocalGroup"
+                                        );
+                                    }
                                     
                                     Text {
                                         text: "⋮";

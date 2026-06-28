@@ -34,12 +34,12 @@ export component AboutScreen inherits Rectangle {
             Rectangle {
                 width: 64px;
                 height: 64px;
-                background: Theme.accent;
+                background: Theme.accent-cyan;
                 border-radius: 32px;
                 
                 Text {
                     text: "2C";
-                    color: #ffffff;
+                    color: #030005;
                     font-size: 24px;
                     font-weight: 800;
                     x: (parent.width - self.width) / 2;
@@ -72,7 +72,7 @@ export component AboutScreen inherits Rectangle {
 
             Text {
                 text: "A premium proxy manager powered by xray & sing-box";
-                color: Theme.text-muted;
+                color: Theme.text-secondary;
                 font-size: Theme.font-metadata;
                 horizontal-alignment: center;
             }
@@ -86,6 +86,8 @@ export component AboutScreen inherits Rectangle {
             Rectangle {
                 background: Theme.surface;
                 border-radius: Theme.card-radius;
+                border-width: 1px;
+                border-color: Theme.border;
                 width: 280px;
                 height: 100px;
 
@@ -110,7 +112,7 @@ export component AboutScreen inherits Rectangle {
 
                     Text {
                         text: "GitHub: github.com/iWebbIO/2con";
-                        color: Theme.accent;
+                        color: Theme.accent-cyan;
                         font-size: Theme.font-metadata;
                         font-weight: 600;
                         horizontal-alignment: center;

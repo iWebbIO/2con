@@ -1,8 +1,8 @@
 use crate::storage::Storage;
 use crate::subscription::fetch::fetch_subscription;
 use crate::ui::bridge::refresh_profiles_ui;
+use crate::model::ProfileType;
 use slint::ComponentHandle;
-use std::sync::Arc;
 use std::time::Duration;
 use chrono::Utc;
 
@@ -17,6 +17,10 @@ pub fn start_scheduler(storage: Storage, slint_handle_weak: slint::Weak<crate::A
                 Ok(s) => s,
                 Err(_) => continue,
             };
+            // Safety layer: never auto-sync LocalGroup profiles — they have no URL.
+            let subs: Vec<_> = subs.into_iter()
+                .filter(|s| s.profile_type == ProfileType::Subscription)
+                .collect();
 
             let now = Utc::now();
             let mut updated_any = false;

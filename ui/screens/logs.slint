@@ -43,9 +43,9 @@ export component LogsScreen inherits Rectangle {
             IconButton {
                 icon-source: Icons.delete;
                 text: "Clear";
-                background-color: Theme.danger;
-                hover-background-color: Theme.danger.brighter(10%);
-                active-background-color: Theme.danger.darker(15%);
+                background-color: Theme.error-red;
+                hover-background-color: Theme.error-red.brighter(10%);
+                active-background-color: Theme.error-red.darker(15%);
                 width: 60px;
                 height: 26px;
                 clicked => { root.clear-logs(); }
@@ -54,10 +54,10 @@ export component LogsScreen inherits Rectangle {
 
         // Terminal Console Area
         Rectangle {
-            background: #0f1015;
+            background: #030005;
             border-radius: Theme.card-radius;
             border-width: 1px;
-            border-color: Theme.elevated;
+            border-color: Theme.border;
             
             Flickable {
                 viewport-height: logs.length * 22px + 20px;
@@ -70,9 +70,9 @@ export component LogsScreen inherits Rectangle {
                     for log-line[idx] in logs : Text {
                         text: log-line;
                         color: Theme.text-secondary;
-                        font-family: "Courier New";
+                        font-family: "monospace";
                         font-size: Theme.font-metadata;
-                        wrap: word-wrap; // Automatic text wrapping for 1:1 viewports
+                        wrap: char-wrap; // Automatic text wrapping for 1:1 viewports
                     }
                 }
             }
@@ -84,16 +84,16 @@ export component LogsScreen inherits Rectangle {
                 width: 28px;
                 height: 28px;
                 border-radius: 4px;
-                background: Theme.surface.with-alpha(0.85);
+                background: Theme.surface;
                 border-width: 1px;
-                border-color: Theme.elevated;
+                border-color: Theme.border;
                 
                 TouchArea {
                     clicked => { root.copy-logs(); }
                     
                     Icon {
                         icon-source: Icons.clipboard;
-                        icon-color: Theme.text-primary;
+                        icon-color: Theme.accent-cyan;
                         size: 14px;
                         x: (parent.width - self.width) / 2;
                         y: (parent.height - self.height) / 2;

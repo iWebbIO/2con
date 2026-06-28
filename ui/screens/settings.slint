@@ -57,6 +57,8 @@ export component SettingsScreen inherits Rectangle {
                 Rectangle {
                     background: Theme.surface;
                     border-radius: Theme.card-radius;
+                    border-width: 1px;
+                    border-color: Theme.border;
                     
                     VerticalLayout {
                         padding: Theme.card-padding;
@@ -73,7 +75,7 @@ export component SettingsScreen inherits Rectangle {
                             Rectangle {
                                 width: 44px;
                                 height: 22px;
-                                background: root.system-proxy-enabled ? Theme.success : Theme.elevated;
+                                background: root.system-proxy-enabled ? Theme.accent-cyan : Theme.elevated;
                                 border-radius: 11px;
                                 
                                 TouchArea {
@@ -108,7 +110,7 @@ export component SettingsScreen inherits Rectangle {
                             Rectangle {
                                 width: 44px;
                                 height: 22px;
-                                background: root.tun-enabled ? Theme.success : Theme.elevated;
+                                background: root.tun-enabled ? Theme.accent-cyan : Theme.elevated;
                                 border-radius: 11px;
                                 
                                 TouchArea {
@@ -140,6 +142,8 @@ export component SettingsScreen inherits Rectangle {
                 Rectangle {
                     background: Theme.surface;
                     border-radius: Theme.card-radius;
+                    border-width: 1px;
+                    border-color: Theme.border;
                     
                     VerticalLayout {
                         padding: Theme.card-padding;
@@ -157,7 +161,7 @@ export component SettingsScreen inherits Rectangle {
                                 height: 24px;
                                 
                                 Rectangle {
-                                    background: root.core-type == "sing-box" ? Theme.accent : Theme.elevated;
+                                    background: root.core-type == "sing-box" ? Theme.accent-cyan : Theme.elevated;
                                     border-radius: 4px;
                                     
                                     TouchArea {
@@ -166,7 +170,7 @@ export component SettingsScreen inherits Rectangle {
                                     
                                     Text {
                                         text: "Sing-box";
-                                        color: #ffffff;
+                                        color: root.core-type == "sing-box" ? #030005 : Theme.text-primary;
                                         font-size: Theme.font-metadata;
                                         font-weight: 700;
                                         x: (parent.width - self.width) / 2;
@@ -175,7 +179,7 @@ export component SettingsScreen inherits Rectangle {
                                 }
 
                                 Rectangle {
-                                    background: root.core-type == "xray" ? Theme.accent : Theme.elevated;
+                                    background: root.core-type == "xray" ? Theme.accent-cyan : Theme.elevated;
                                     border-radius: 4px;
                                     
                                     TouchArea {
@@ -184,7 +188,7 @@ export component SettingsScreen inherits Rectangle {
                                     
                                     Text {
                                         text: "Xray-core";
-                                        color: #ffffff;
+                                        color: root.core-type == "xray" ? #030005 : Theme.text-primary;
                                         font-size: Theme.font-metadata;
                                         font-weight: 700;
                                         x: (parent.width - self.width) / 2;
@@ -204,7 +208,7 @@ export component SettingsScreen inherits Rectangle {
                                 height: 24px;
                                 
                                 Rectangle {
-                                    background: root.routing-preset == "Bypass LAN & China" ? Theme.accent : Theme.elevated;
+                                    background: root.routing-preset == "Bypass LAN & China" ? Theme.accent-cyan : Theme.elevated;
                                     border-radius: 4px;
                                     
                                     TouchArea {
@@ -213,7 +217,7 @@ export component SettingsScreen inherits Rectangle {
                                     
                                     Text {
                                         text: "Bypass China";
-                                        color: #ffffff;
+                                        color: root.routing-preset == "Bypass LAN & China" ? #030005 : Theme.text-primary;
                                         font-size: Theme.font-metadata;
                                         font-weight: 700;
                                         x: (parent.width - self.width) / 2;
@@ -222,7 +226,7 @@ export component SettingsScreen inherits Rectangle {
                                 }
 
                                 Rectangle {
-                                    background: root.routing-preset == "Global" ? Theme.accent : Theme.elevated;
+                                    background: root.routing-preset == "Global" ? Theme.accent-cyan : Theme.elevated;
                                     border-radius: 4px;
                                     
                                     TouchArea {
@@ -231,7 +235,7 @@ export component SettingsScreen inherits Rectangle {
                                     
                                     Text {
                                         text: "Global";
-                                        color: #ffffff;
+                                        color: root.routing-preset == "Global" ? #030005 : Theme.text-primary;
                                         font-size: Theme.font-metadata;
                                         font-weight: 700;
                                         x: (parent.width - self.width) / 2;
@@ -247,6 +251,8 @@ export component SettingsScreen inherits Rectangle {
                 Rectangle {
                     background: Theme.surface;
                     border-radius: Theme.card-radius;
+                    border-width: 1px;
+                    border-color: Theme.border;
                     
                     VerticalLayout {
                         padding: Theme.card-padding;
@@ -263,8 +269,9 @@ export component SettingsScreen inherits Rectangle {
                                 color: Theme.text-primary;
                                 font-size: Theme.font-primary;
                                 single-line: true;
+                                font-family: "monospace";
                             }
-                            Rectangle { height: 1px; background: Theme.elevated; }
+                            Rectangle { height: 1px; background: Theme.border; }
                         }
 
                         // HTTP Input
@@ -276,8 +283,9 @@ export component SettingsScreen inherits Rectangle {
                                 color: Theme.text-primary;
                                 font-size: Theme.font-primary;
                                 single-line: true;
+                                font-family: "monospace";
                             }
-                            Rectangle { height: 1px; background: Theme.elevated; }
+                            Rectangle { height: 1px; background: Theme.border; }
                         }
 
                         // DNS Server Input
@@ -289,8 +297,9 @@ export component SettingsScreen inherits Rectangle {
                                 color: Theme.text-primary;
                                 font-size: Theme.font-primary;
                                 single-line: true;
+                                font-family: "monospace";
                             }
-                            Rectangle { height: 1px; background: Theme.elevated; }
+                            Rectangle { height: 1px; background: Theme.border; }
                         }
                     }
                 }
@@ -299,9 +308,9 @@ export component SettingsScreen inherits Rectangle {
                 IconButton {
                     icon-source: Icons.save;
                     text: "Save Configuration";
-                    background-color: Theme.accent;
-                    hover-background-color: Theme.accent.brighter(10%);
-                    active-background-color: Theme.accent.darker(15%);
+                    background-color: Theme.accent-cyan;
+                    hover-background-color: Theme.accent-cyan.brighter(10%);
+                    active-background-color: Theme.accent-cyan.darker(15%);
                     height: 36px;
                     clicked => {
                         root.save-settings(

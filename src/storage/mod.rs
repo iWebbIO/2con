@@ -1,6 +1,6 @@
 pub mod migrations;
 
-use crate::model::{ProfileItem, RoutingItem, SubItem, AppSettings};
+use crate::model::{ProfileItem, RoutingItem, SubItem, ProfileType, AppSettings};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::sync::{Arc, Mutex};
 use std::path::PathBuf;
@@ -113,8 +113,8 @@ impl Storage {
     pub fn add_subscription(&self, item: &SubItem) -> Result<i64, rusqlite::Error> {
         let conn = self.conn.lock().unwrap();
         conn.execute(
-            "INSERT OR REPLACE INTO subscriptions (name, url, last_updated, update_interval, upload, download, total, expire)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT OR REPLACE INTO subscriptions (name, url, last_updated, update_interval, upload, download, total, expire, profile_type)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             params![
                 item.name,
                 item.url,
@@ -123,7 +123,8 @@ impl Storage {
                 item.upload,
                 item.download,
                 item.total,
-                item.expire
+                item.expire,
+                item.profile_type.to_string()
             ],
         )?;
         Ok(conn.last_insert_rowid())
@@ -131,8 +132,10 @@ impl Storage {
 
     pub fn get_subscriptions(&self) -> Result<Vec<SubItem>, rusqlite::Error> {
         let conn = self.conn.lock().unwrap();
-        let mut stmt = conn.prepare("SELECT id, name, url, last_updated, update_interval, upload, download, total, expire FROM subscriptions")?;
+        let mut stmt = conn.prepare("SELECT id, name, url, last_updated, update_interval, upload, download, total, expire, profile_type FROM subscriptions")?;
         let rows = stmt.query_map([], |row| {
+            let pt_str: String = row.get::<_, Option<String>>(9)?.unwrap_or_default();
+            let profile_type = pt_str.parse::<ProfileType>().unwrap_or_default();
             Ok(SubItem {
                 id: Some(row.get(0)?),
                 name: row.get(1)?,
@@ -143,6 +146,7 @@ impl Storage {
                 download: row.get(6)?,
                 total: row.get(7)?,
                 expire: row.get(8)?,
+                profile_type,
             })
         })?;
 
@@ -151,6 +155,12 @@ impl Storage {
             list.push(r?);
         }
         Ok(list)
+    }
+
+    pub fn rename_subscription(&self, id: i64, new_name: &str) -> Result<(), rusqlite::Error> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute("UPDATE subscriptions SET name = ? WHERE id = ?", params![new_name, id])?;
+        Ok(())
     }
 
     pub fn clear_profiles_by_sub_id(&self, sub_id: i64) -> Result<(), rusqlite::Error> {

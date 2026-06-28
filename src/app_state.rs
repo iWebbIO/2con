@@ -7,6 +7,7 @@ pub struct AppState {
     pub storage: Storage,
     pub process_manager: ProcessManager,
     pub settings: Mutex<AppSettings>,
+    pub connection_status: Mutex<String>,
 }
 
 impl AppState {
@@ -16,6 +17,7 @@ impl AppState {
             storage,
             process_manager: ProcessManager::new(),
             settings: Mutex::new(settings),
+            connection_status: Mutex::new("disconnected".to_string()),
         }
     }
 }

@@ -20,7 +20,7 @@ export component AppWindow inherits Window {
     in-out property <int> active-page-index: 0;
 
     // Home Properties
-    in-out property <string> connection-status: "Disconnected";
+    in-out property <string> connection_status: "disconnected"; // values: "disconnected", "connected", "timeout"
     in-out property <string> active-profile: "No Profile Selected";
     in-out property <string> download-speed: "0 KB/s";
     in-out property <string> upload-speed: "0 KB/s";
@@ -57,6 +57,7 @@ export component AppWindow inherits Window {
     in-out property <int> selected-sub-id: -1;
     in-out property <string> selected-sub-name: "";
     in-out property <string> selected-sub-url: "";
+    in-out property <string> selected-sub-type: "Subscription"; // "Subscription" or "LocalGroup"
 
     // Callbacks to Rust
     callback toggle-connection();
@@ -73,15 +74,49 @@ export component AppWindow inherits Window {
     callback clear-logs();
     callback copy-logs();
     callback copy-text(string);
+    callback create-local-group(string);
+    callback rename-profile(int, string);
+    callback add-config-to-group(int);
+
+    // --- Dynamic Bottom Glow Rectangles (Base z-index) ---
+    // 1. Connected Glow (AccentCyan)
+    Rectangle {
+        x: 0;
+        y: parent.height * 60%;
+        width: 100%;
+        height: parent.height * 40%;
+        background: @linear-gradient(180deg, transparent 0%, Theme.accent-cyan 100%);
+        opacity: root.connection_status == "connected" ? 0.2 : 0.0;
+        
+        animate opacity {
+            duration: 400ms;
+            easing: ease-in-out;
+        }
+    }
+    
+    // 2. Timeout Glow (ErrorRed)
+    Rectangle {
+        x: 0;
+        y: parent.height * 60%;
+        width: 100%;
+        height: parent.height * 40%;
+        background: @linear-gradient(180deg, transparent 0%, Theme.error-red 100%);
+        opacity: root.connection_status == "timeout" ? 0.3 : 0.0;
+        
+        animate opacity {
+            duration: 400ms;
+            easing: ease-in-out;
+        }
+    }
 
     // Root Layout Structure
     VerticalLayout {
         // Main Screen Area (Tab switching)
         Rectangle {
-            background: Theme.background;
+            background: transparent;
             
             if root.active-page-index == 0 : HomeScreen {
-                connection-status: root.connection-status;
+                connection_status: root.connection_status;
                 active-profile: root.active-profile;
                 routing-mode: root.routing-preset;
                 download-speed: root.download-speed;
@@ -106,10 +141,14 @@ export component AppWindow inherits Window {
                 ping-profile(id) => { root.ping-profile(id); }
                 import-subscription(name, url) => { root.import-subscription(name, url); }
                 import-clipboard => { root.import-clipboard(); }
-                show-sub-menu(sub-id, name, url) => {
+                create-local-group(name) => { root.create-local-group(name); }
+                rename-profile(id, name) => { root.rename-profile(id, name); }
+                add-config-to-group(id) => { root.add-config-to-group(id); }
+                show-sub-menu(sub-id, name, url, sub-type) => {
                     root.selected-sub-id = sub-id;
                     root.selected-sub-name = name;
                     root.selected-sub-url = url;
+                    root.selected-sub-type = sub-type;
                     root.show-sub-menu = true;
                 }
             }
@@ -128,127 +167,136 @@ export component AppWindow inherits Window {
             }
         }
 
-        // HorizontalBox Bottom Navigation Bar (heavily condensed)
+        // Floating Bottom Navigation Bar
         HorizontalBox {
-            height: 52px;
-            padding-top: 4px;
-            padding-bottom: 4px;
-            padding-left: Theme.padding-screen;
-            padding-right: Theme.padding-screen;
-            spacing: Theme.gap-md;
+            padding: 12px; // margin so it floats
+            height: 76px; // 52px navigation height + 24px margins
             
-            // Tab 0: Home
             Rectangle {
-                background: root.active-page-index == 0 ? Theme.elevated : transparent;
-                border-radius: 4px;
+                background: Theme.surface;
+                border-radius: 20px;
+                border-width: 1px;
+                border-color: Theme.border;
                 
-                TouchArea {
-                    clicked => { root.active-page-index = 0; }
-                }
-                
-                VerticalLayout {
-                    alignment: center;
-                    spacing: 2px;
-                    HorizontalLayout {
-                        alignment: center;
-                        Icon {
-                            icon-source: Icons.nav-home;
-                            icon-color: root.active-page-index == 0 ? Theme.accent : Theme.text-secondary;
-                            size: 18px;
+                HorizontalLayout {
+                    padding-left: 12px;
+                    padding-right: 12px;
+                    spacing: Theme.gap-md;
+                    
+                    // Tab 0: Home
+                    Rectangle {
+                        background: root.active-page-index == 0 ? rgba(255, 255, 255, 0.08) : transparent;
+                        border-radius: 12px;
+                        
+                        TouchArea {
+                            clicked => { root.active-page-index = 0; }
+                        }
+                        
+                        VerticalLayout {
+                            alignment: center;
+                            spacing: 2px;
+                            HorizontalLayout {
+                                alignment: center;
+                                Icon {
+                                    icon-source: Icons.nav-home;
+                                    icon-color: root.active-page-index == 0 ? Theme.accent-cyan : Theme.text-secondary;
+                                    size: 18px;
+                                }
+                            }
+                            Text {
+                                text: "Home";
+                                color: root.active-page-index == 0 ? Theme.accent-cyan : Theme.text-secondary;
+                                font-size: Theme.font-metadata;
+                                horizontal-alignment: center;
+                            }
                         }
                     }
-                    Text {
-                        text: "Home";
-                        color: root.active-page-index == 0 ? Theme.accent : Theme.text-secondary;
-                        font-size: Theme.font-metadata;
-                        horizontal-alignment: center;
-                    }
-                }
-            }
 
-            // Tab 1: Proxies
-            Rectangle {
-                background: root.active-page-index == 1 ? Theme.elevated : transparent;
-                border-radius: 4px;
-                
-                TouchArea {
-                    clicked => { root.active-page-index = 1; }
-                }
-                
-                VerticalLayout {
-                    alignment: center;
-                    spacing: 2px;
-                    HorizontalLayout {
-                        alignment: center;
-                        Icon {
-                            icon-source: Icons.nav-proxies;
-                            icon-color: root.active-page-index == 1 ? Theme.accent : Theme.text-secondary;
-                            size: 18px;
+                    // Tab 1: Proxies
+                    Rectangle {
+                        background: root.active-page-index == 1 ? rgba(255, 255, 255, 0.08) : transparent;
+                        border-radius: 12px;
+                        
+                        TouchArea {
+                            clicked => { root.active-page-index = 1; }
+                        }
+                        
+                        VerticalLayout {
+                            alignment: center;
+                            spacing: 2px;
+                            HorizontalLayout {
+                                alignment: center;
+                                Icon {
+                                    icon-source: Icons.nav-proxies;
+                                    icon-color: root.active-page-index == 1 ? Theme.accent-cyan : Theme.text-secondary;
+                                    size: 18px;
+                                }
+                            }
+                            Text {
+                                text: "Proxies";
+                                color: root.active-page-index == 1 ? Theme.accent-cyan : Theme.text-secondary;
+                                font-size: Theme.font-metadata;
+                                horizontal-alignment: center;
+                            }
                         }
                     }
-                    Text {
-                        text: "Proxies";
-                        color: root.active-page-index == 1 ? Theme.accent : Theme.text-secondary;
-                        font-size: Theme.font-metadata;
-                        horizontal-alignment: center;
-                    }
-                }
-            }
 
-            // Tab 2: Profiles (Subscriptions)
-            Rectangle {
-                background: root.active-page-index == 2 ? Theme.elevated : transparent;
-                border-radius: 4px;
-                
-                TouchArea {
-                    clicked => { root.active-page-index = 2; }
-                }
-                
-                VerticalLayout {
-                    alignment: center;
-                    spacing: 2px;
-                    HorizontalLayout {
-                        alignment: center;
-                        Icon {
-                            icon-source: Icons.nav-profiles;
-                            icon-color: root.active-page-index == 2 ? Theme.accent : Theme.text-secondary;
-                            size: 18px;
+                    // Tab 2: Profiles (Subscriptions)
+                    Rectangle {
+                        background: root.active-page-index == 2 ? rgba(255, 255, 255, 0.08) : transparent;
+                        border-radius: 12px;
+                        
+                        TouchArea {
+                            clicked => { root.active-page-index = 2; }
+                        }
+                        
+                        VerticalLayout {
+                            alignment: center;
+                            spacing: 2px;
+                            HorizontalLayout {
+                                alignment: center;
+                                Icon {
+                                    icon-source: Icons.nav-profiles;
+                                    icon-color: root.active-page-index == 2 ? Theme.accent-cyan : Theme.text-secondary;
+                                    size: 18px;
+                                }
+                            }
+                            Text {
+                                text: "Profiles";
+                                color: root.active-page-index == 2 ? Theme.accent-cyan : Theme.text-secondary;
+                                font-size: Theme.font-metadata;
+                                horizontal-alignment: center;
+                            }
                         }
                     }
-                    Text {
-                        text: "Profiles";
-                        color: root.active-page-index == 2 ? Theme.accent : Theme.text-secondary;
-                        font-size: Theme.font-metadata;
-                        horizontal-alignment: center;
-                    }
-                }
-            }
 
-            // Tab 3: Settings
-            Rectangle {
-                background: root.active-page-index == 3 ? Theme.elevated : transparent;
-                border-radius: 4px;
-                
-                TouchArea {
-                    clicked => { root.active-page-index = 3; }
-                }
-                
-                VerticalLayout {
-                    alignment: center;
-                    spacing: 2px;
-                    HorizontalLayout {
-                        alignment: center;
-                        Icon {
-                            icon-source: Icons.nav-settings;
-                            icon-color: root.active-page-index == 3 ? Theme.accent : Theme.text-secondary;
-                            size: 18px;
+                    // Tab 3: Settings
+                    Rectangle {
+                        background: root.active-page-index == 3 ? rgba(255, 255, 255, 0.08) : transparent;
+                        border-radius: 12px;
+                        
+                        TouchArea {
+                            clicked => { root.active-page-index = 3; }
                         }
-                    }
-                    Text {
-                        text: "Settings";
-                        color: root.active-page-index == 3 ? Theme.accent : Theme.text-secondary;
-                        font-size: Theme.font-metadata;
-                        horizontal-alignment: center;
+                        
+                        VerticalLayout {
+                            alignment: center;
+                            spacing: 2px;
+                            HorizontalLayout {
+                                alignment: center;
+                                Icon {
+                                    icon-source: Icons.nav-settings;
+                                    icon-color: root.active-page-index == 3 ? Theme.accent-cyan : Theme.text-secondary;
+                                    size: 18px;
+                                }
+                            }
+                            Text {
+                                text: "Settings";
+                                color: root.active-page-index == 3 ? Theme.accent-cyan : Theme.text-secondary;
+                                font-size: Theme.font-metadata;
+                                horizontal-alignment: center;
+                            }
+                        }
                     }
                 }
             }
@@ -441,7 +489,7 @@ export component AppWindow inherits Window {
         Rectangle {
             y: parent.height - self.height;
             width: 100%;
-            height: 120px;
+            height: 130px;
             background: Theme.surface;
             border-top-left-radius: 12px;
             border-top-right-radius: 12px;
@@ -452,22 +500,44 @@ export component AppWindow inherits Window {
                 padding: Theme.padding-screen;
                 spacing: Theme.gap-md;
                 
-                Text {
-                    text: "Subscription: " + root.selected-sub-name;
-                    color: Theme.text-primary;
-                    font-size: Theme.font-primary;
-                    font-weight: 700;
-                    overflow: elide;
+                // Header: name + type badge
+                HorizontalLayout {
+                    alignment: space-between;
+                    height: 20px;
+                    Text {
+                        text: root.selected-sub-name;
+                        color: Theme.text-primary;
+                        font-size: Theme.font-primary;
+                        font-weight: 700;
+                        overflow: elide;
+                        vertical-alignment: center;
+                    }
+                    // Type badge
+                    Rectangle {
+                        width: 72px;
+                        height: 16px;
+                        border-radius: 8px;
+                        background: root.selected-sub-type == "LocalGroup" ? Theme.accent-purple.with-alpha(0.25) : Theme.accent-cyan.with-alpha(0.18);
+                        Text {
+                            text: root.selected-sub-type == "LocalGroup" ? "Local Group" : "Subscription";
+                            color: root.selected-sub-type == "LocalGroup" ? Theme.accent-purple : Theme.accent-cyan;
+                            font-size: 8px;
+                            font-weight: 700;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
                 }
                 
+                // Conditional Actions Row
                 HorizontalLayout {
                     spacing: Theme.gap-md;
                     alignment: center;
                     
-                    // Update Action
-                    IconButton {
+                    // --- SUBSCRIPTION actions ---
+                    if root.selected-sub-type == "Subscription" : IconButton {
                         icon-source: Icons.fetch;
-                        text: "Fetch";
+                        text: "Sync";
                         background-color: Theme.accent;
                         hover-background-color: Theme.accent.brighter(10%);
                         active-background-color: Theme.accent.darker(15%);
@@ -477,9 +547,7 @@ export component AppWindow inherits Window {
                             root.import-subscription(root.selected-sub-name, root.selected-sub-url);
                         }
                     }
-                    
-                    // Share/Upload Action (Mock link copying)
-                    IconButton {
+                    if root.selected-sub-type == "Subscription" : IconButton {
                         icon-source: Icons.upload;
                         text: "Copy Link";
                         background-color: Theme.elevated;
@@ -491,8 +559,35 @@ export component AppWindow inherits Window {
                             root.copy-text(root.selected-sub-url);
                         }
                     }
-                    
-                    // Delete Action
+
+                    // --- LOCAL GROUP actions ---
+                    if root.selected-sub-type == "LocalGroup" : IconButton {
+                        icon-source: Icons.clipboard;
+                        text: "Add Config";
+                        background-color: Theme.accent-purple.with-alpha(0.35);
+                        hover-background-color: Theme.accent-purple.with-alpha(0.5);
+                        active-background-color: Theme.accent-purple.with-alpha(0.2);
+                        height: 28px;
+                        clicked => {
+                            root.show-sub-menu = false;
+                            root.add-config-to-group(root.selected-sub-id);
+                        }
+                    }
+                    if root.selected-sub-type == "LocalGroup" : IconButton {
+                        icon-source: Icons.fetch;
+                        text: "Rename";
+                        background-color: Theme.elevated;
+                        hover-background-color: Theme.elevated.brighter(10%);
+                        active-background-color: Theme.surface;
+                        height: 28px;
+                        clicked => {
+                            // Rename to a placeholder — in a full implementation this would open an input.
+                            root.show-sub-menu = false;
+                            root.rename-profile(root.selected-sub-id, root.selected-sub-name + " (renamed)");
+                        }
+                    }
+
+                    // --- SHARED: Delete (both types) ---
                     IconButton {
                         icon-source: Icons.delete;
                         text: "Delete";

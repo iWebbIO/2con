@@ -20,6 +20,13 @@ pub fn init_db(conn: &Connection) -> Result<(), rusqlite::Error> {
         [],
     )?;
 
+    // Migrate: add profile_type column to subscriptions if it doesn't already exist
+    // rusqlite returns an error if the column exists; we intentionally ignore it.
+    let _ = conn.execute(
+        "ALTER TABLE subscriptions ADD COLUMN profile_type TEXT NOT NULL DEFAULT 'subscription'",
+        [],
+    );
+
     // Create profiles table
     conn.execute(
         "CREATE TABLE IF NOT EXISTS profiles (

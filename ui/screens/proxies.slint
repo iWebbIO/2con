@@ -39,9 +39,9 @@ export component ProxiesScreen inherits Rectangle {
             IconButton {
                 icon-source: Icons.nav-proxies;
                 text: "Test";
-                background-color: Theme.accent;
-                hover-background-color: Theme.accent.brighter(10%);
-                active-background-color: Theme.accent.darker(15%);
+                background-color: Theme.accent-cyan;
+                hover-background-color: Theme.accent-cyan.brighter(10%);
+                active-background-color: Theme.accent-cyan.darker(15%);
                 width: 60px;
                 height: 26px;
                 clicked => { root.test-all-latency(); }
@@ -60,7 +60,7 @@ export component ProxiesScreen inherits Rectangle {
                     
                     // All Chip
                     Rectangle {
-                        background: root.selected-group == "All" ? Theme.accent : Theme.surface;
+                        background: root.selected-group == "All" ? Theme.accent-cyan : Theme.surface;
                         border-radius: 4px;
                         height: 22px;
                         
@@ -76,7 +76,7 @@ export component ProxiesScreen inherits Rectangle {
                             alignment: center;
                             Text {
                                 text: "All";
-                                color: Theme.text-primary;
+                                color: root.selected-group == "All" ? #030005 : Theme.text-primary;
                                 font-size: Theme.font-metadata;
                                 font-weight: 700;
                                 vertical-alignment: center;
@@ -86,7 +86,7 @@ export component ProxiesScreen inherits Rectangle {
 
                     // VLESS Chip
                     Rectangle {
-                        background: root.selected-group == "VLESS" ? Theme.accent : Theme.surface;
+                        background: root.selected-group == "VLESS" ? Theme.accent-cyan : Theme.surface;
                         border-radius: 4px;
                         height: 22px;
                         
@@ -102,7 +102,7 @@ export component ProxiesScreen inherits Rectangle {
                             alignment: center;
                             Text {
                                 text: "VLESS";
-                                color: Theme.text-primary;
+                                color: root.selected-group == "VLESS" ? #030005 : Theme.text-primary;
                                 font-size: Theme.font-metadata;
                                 font-weight: 700;
                                 vertical-alignment: center;
@@ -112,7 +112,7 @@ export component ProxiesScreen inherits Rectangle {
 
                     // Active (Auto) Chip
                     Rectangle {
-                        background: root.selected-group == "Active" ? Theme.accent : Theme.surface;
+                        background: root.selected-group == "Active" ? Theme.accent-cyan : Theme.surface;
                         border-radius: 4px;
                         height: 22px;
                         
@@ -128,7 +128,7 @@ export component ProxiesScreen inherits Rectangle {
                             alignment: center;
                             Text {
                                 text: "Active";
-                                color: Theme.text-primary;
+                                color: root.selected-group == "Active" ? #030005 : Theme.text-primary;
                                 font-size: Theme.font-metadata;
                                 font-weight: 700;
                                 vertical-alignment: center;
@@ -148,15 +148,15 @@ export component ProxiesScreen inherits Rectangle {
                 alignment: start;
                 
                 for proxy[idx] in proxies : Rectangle {
-                    property <bool> is-visible: root.selected-group == "All" || (root.selected-group == "VLESS" && (proxy.protocol == "vless" || proxy.protocol == "VLESS")) || (root.selected-group == "Active" && proxy.is-active);
+                    property <bool> is-visible: root.selected-group == "All" || (root.selected-group == "VLESS" && (proxy.protocol == "vless" || proxy.protocol == "VLESS")) || (root.selected-group == "Active" && proxy.is_active);
                     height: is-visible ? 32px : 0px;
                     visible: is-visible;
-                    background: proxy.is-active ? Theme.elevated : Theme.surface;
+                    background: Theme.surface;
                     border-radius: Theme.card-radius;
-                    border-color: proxy.is-active ? Theme.accent : transparent;
+                    border-color: proxy.is_active ? Theme.accent-cyan : (row-ta.has-hover ? Theme.accent-cyan.with-alpha(0.3) : transparent);
                     border-width: is-visible ? 1px : 0px;
                     
-                    TouchArea {
+                    row-ta := TouchArea {
                         clicked => { root.select-proxy(proxy.id); }
                     }
                     
@@ -189,6 +189,7 @@ export component ProxiesScreen inherits Rectangle {
                                         font-weight: 700;
                                         horizontal-alignment: center;
                                         vertical-alignment: center;
+                                        font-family: "monospace";
                                     }
                                 }
                             }
@@ -231,13 +232,14 @@ export component ProxiesScreen inherits Rectangle {
                                             font-size: Theme.font-metadata;
                                             font-weight: 700;
                                             vertical-alignment: center;
+                                            font-family: "monospace";
                                         }
                                         
                                         Rectangle {
                                             width: 8px;
                                             height: 8px;
                                             border-radius: 4px;
-                                            background: proxy.delay-ms < 0 ? Theme.danger : (proxy.delay-ms == 0 ? Theme.text-muted : (proxy.delay-ms < 150 ? Theme.success : (proxy.delay-ms < 350 ? Theme.warning : Theme.danger)));
+                                            background: proxy.delay-ms < 0 ? Theme.error-red : (proxy.delay-ms == 0 ? Theme.text-secondary : (proxy.delay-ms < 150 ? Theme.accent-cyan : (proxy.delay-ms < 350 ? Theme.accent-magenta : Theme.error-red)));
                                         }
                                     }
                                 }

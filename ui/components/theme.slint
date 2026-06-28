@@ -1,29 +1,33 @@
 export global Theme {
-    // Color Palette Tokens
-    in-out property <color> background: #171821;
-    in-out property <color> surface: #21222d;
-    in-out property <color> elevated: #2d3748;
-    in-out property <color> accent: #3182ce;
-    
+    // Dark-Neon Color Palette Tokens
+    in-out property <color> background: #030005;
+    in-out property <color> surface: rgba(20, 10, 30, 0.6);
+    in-out property <color> border: rgba(255, 255, 255, 0.05);
     in-out property <color> text-primary: #ffffff;
-    in-out property <color> text-secondary: #a0aec0;
-    in-out property <color> text-muted: #718096;
-
-    in-out property <color> success: #48bb78;
-    in-out property <color> warning: #ecc94b;
-    in-out property <color> danger: #e53e3e;
+    in-out property <color> text-secondary: #888888;
+    in-out property <color> accent-cyan: #00e5ff;
+    in-out property <color> accent-magenta: #ff007f;
+    in-out property <color> accent-purple: #bf00ff;
+    in-out property <color> error-red: #ff3333;
     
-    // Spacing Scale Tokens (reduced by 30%-50%, using 4px/8px/12px increments)
+    // Compatibility Aliases for compilation safety
+    in-out property <color> accent: accent-cyan;
+    in-out property <color> success: accent-cyan;
+    in-out property <color> warning: accent-magenta;
+    in-out property <color> danger: error-red;
+    in-out property <color> elevated: rgba(255, 255, 255, 0.08);
+    
+    // Spacing Scale Tokens (4px to 8px increments)
     in-out property <length> padding-screen: 12px;
     in-out property <length> gap-md: 8px;
     in-out property <length> gap-lg: 12px;
     in-out property <length> nav-spacing: 8px;
     
     // Card Sizing Tokens
-    in-out property <length> card-radius: 6px;
+    in-out property <length> card-radius: 12px;
     in-out property <length> card-padding: 8px;
 
-    // Strict Two-Tier Typography system
+    // Strict Typography scale
     in-out property <length> font-primary: 12px;
     in-out property <length> font-metadata: 9.5px;
     in-out property <length> font-header: 14px;

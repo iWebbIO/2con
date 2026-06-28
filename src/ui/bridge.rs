@@ -1,6 +1,6 @@
 use crate::AppWindow;
 use crate::app_state::AppState;
-use crate::model::{ProfileItem, SubItem, AppSettings};
+use crate::model::{SubItem, ProfileType};
 use crate::core::xray::XrayEngine;
 use crate::core::singbox::SingboxEngine;
 use crate::core::CoreEngine;
@@ -21,17 +21,22 @@ pub fn refresh_profiles_ui(ui: &AppWindow, storage: &Storage) {
             .into_iter()
             .map(|s| {
                 let is_active = Some(s.id.unwrap_or(0)) == active_sub_id;
-                let ts = s.last_updated.unwrap_or_else(|| "N/A".to_string());
+                let ts = s.last_updated.clone().unwrap_or_else(|| "N/A".to_string());
                 let formatted_ts = if ts.len() > 16 {
                     ts[0..10].to_string() + " " + &ts[11..16]
                 } else {
                     ts
                 };
+                // Use the protocol field as the profile type discriminator for the UI
+                let type_label = match s.profile_type {
+                    ProfileType::Subscription => "Subscription",
+                    ProfileType::LocalGroup => "LocalGroup",
+                };
 
                 crate::ProfileUiItem {
                     id: s.id.unwrap_or(0) as i32,
                     name: s.name.into(),
-                    protocol: "Subscription".into(),
+                    protocol: type_label.into(),
                     address: s.url.into(),
                     port: 0,
                     delay: formatted_ts.into(),
@@ -108,19 +113,22 @@ pub fn bind_ui_callbacks(ui: &AppWindow, state: Arc<AppState>) {
             // Disconnect
             ui.set_is_connected(false);
             ui.set_is_connecting(false);
-            ui.set_connection_status("Disconnected".into());
+            ui.set_connection_status("disconnected".into());
+            *state_c.connection_status.lock().unwrap() = "disconnected".to_string();
             state_c.process_manager.stop();
             let _ = disable_system_proxy();
             append_log(&ui, "[2con] Stopped client connection.".into());
         } else {
             // Connect
             ui.set_is_connecting(true);
-            ui.set_connection_status("Connecting...".into());
+            ui.set_connection_status("connecting".into());
+            *state_c.connection_status.lock().unwrap() = "connecting".to_string();
             
             let storage = state_c.storage.clone();
             let process_manager = state_c.process_manager.clone();
             let settings = state_c.settings.lock().unwrap().clone();
             let ui_weak_thread = ui_weak.clone();
+            let state_thread = state_c.clone();
 
             tokio::spawn(async move {
                 let active_profile = match storage.get_active_profile() {
@@ -129,7 +137,8 @@ pub fn bind_ui_callbacks(ui: &AppWindow, state: Arc<AppState>) {
                         let _ = slint::invoke_from_event_loop(move || {
                             if let Some(ui) = ui_weak_thread.upgrade() {
                                 ui.set_is_connecting(false);
-                                ui.set_connection_status("Disconnected".into());
+                                ui.set_connection_status("disconnected".into());
+                                *state_thread.connection_status.lock().unwrap() = "disconnected".to_string();
                                 append_log(&ui, "[2con Error] Cannot connect. No active profile selected!".into());
                             }
                         });
@@ -151,10 +160,12 @@ pub fn bind_ui_callbacks(ui: &AppWindow, state: Arc<AppState>) {
                     Err(e) => {
                         let err_str = format!("[2con Error] Configuration generation failed: {}", e);
                         let ui_weak_err = ui_weak_thread.clone();
+                        let state_thread_err = state_thread.clone();
                         let _ = slint::invoke_from_event_loop(move || {
                             if let Some(ui) = ui_weak_err.upgrade() {
                                 ui.set_is_connecting(false);
-                                ui.set_connection_status("Disconnected".into());
+                                ui.set_connection_status("disconnected".into());
+                                *state_thread_err.connection_status.lock().unwrap() = "disconnected".to_string();
                                 append_log(&ui, err_str.clone());
                             }
                         });
@@ -174,19 +185,42 @@ pub fn bind_ui_callbacks(ui: &AppWindow, state: Arc<AppState>) {
                 });
 
                 let ui_weak_done = ui_weak_thread.clone();
+                let state_thread_done = state_thread.clone();
                 match launch_res {
                     Ok(_) => {
                         // System proxy toggle
                         if settings.system_proxy_enabled {
                             let _ = enable_system_proxy(settings.socks_port, settings.http_port);
                         }
-                        let _ = slint::invoke_from_event_loop(move || {
-                            if let Some(ui) = ui_weak_done.upgrade() {
-                                ui.set_is_connecting(false);
-                                ui.set_is_connected(true);
-                                ui.set_connection_status("Connected".into());
-                                ui.set_active_profile(active_profile.name.clone().into());
-                                append_log(&ui, format!("[2con] Connected via profile '{}'", active_profile.name));
+                        
+                        // Spawn check for timeout trigger
+                        tokio::spawn(async move {
+                            let addr = format!("{}:{}", active_profile.address, active_profile.port);
+                            // Verify node TCP connectability with 4 second timeout
+                            match tokio::time::timeout(Duration::from_secs(4), tokio::net::TcpStream::connect(&addr)).await {
+                                Ok(Ok(_)) => {
+                                    let _ = slint::invoke_from_event_loop(move || {
+                                        if let Some(ui) = ui_weak_done.upgrade() {
+                                            ui.set_is_connecting(false);
+                                            ui.set_is_connected(true);
+                                            ui.set_connection_status("connected".into());
+                                            *state_thread_done.connection_status.lock().unwrap() = "connected".to_string();
+                                            ui.set_active_profile(active_profile.name.clone().into());
+                                            append_log(&ui, format!("[2con] Connected via profile '{}'", active_profile.name));
+                                        }
+                                    });
+                                }
+                                _ => {
+                                    let _ = slint::invoke_from_event_loop(move || {
+                                        if let Some(ui) = ui_weak_done.upgrade() {
+                                            ui.set_is_connecting(false);
+                                            ui.set_is_connected(false);
+                                            ui.set_connection_status("timeout".into());
+                                            *state_thread_done.connection_status.lock().unwrap() = "timeout".to_string();
+                                            append_log(&ui, format!("[2con Error] Connection to node '{}' timed out!", active_profile.name));
+                                        }
+                                    });
+                                }
                             }
                         });
                     }
@@ -194,7 +228,8 @@ pub fn bind_ui_callbacks(ui: &AppWindow, state: Arc<AppState>) {
                         let _ = slint::invoke_from_event_loop(move || {
                             if let Some(ui) = ui_weak_done.upgrade() {
                                 ui.set_is_connecting(false);
-                                ui.set_connection_status("Disconnected".into());
+                                ui.set_connection_status("disconnected".into());
+                                *state_thread_done.connection_status.lock().unwrap() = "disconnected".to_string();
                             }
                         });
                     }
@@ -342,6 +377,7 @@ pub fn bind_ui_callbacks(ui: &AppWindow, state: Arc<AppState>) {
                 download: None,
                 total: None,
                 expire: None,
+                profile_type: ProfileType::Subscription,
             };
 
             let ui_weak_log = ui_weak_thread.clone();
@@ -498,6 +534,63 @@ pub fn bind_ui_callbacks(ui: &AppWindow, state: Arc<AppState>) {
         if let Some(ui) = ui_weak.upgrade() {
             append_log(&ui, "[2con] Copied text to clipboard!".into());
         }
+    });
+
+    // Create a new LocalGroup (no URL, manual config management)
+    let state_c = state.clone();
+    let ui_weak = ui.as_weak();
+    ui.on_create_local_group(move |name| {
+        let storage = state_c.storage.clone();
+        let name_str = name.to_string();
+        let group = SubItem {
+            id: None,
+            name: if name_str.is_empty() { "Local Group".to_string() } else { name_str.clone() },
+            url: String::new(),
+            last_updated: None,
+            update_interval: 0,
+            upload: None,
+            download: None,
+            total: None,
+            expire: None,
+            profile_type: ProfileType::LocalGroup,
+        };
+        let _ = storage.add_subscription(&group);
+        let ui = ui_weak.upgrade().unwrap();
+        refresh_profiles_ui(&ui, &storage);
+        append_log(&ui, format!("[2con] Created local group: '{}'", name_str));
+    });
+
+    // Rename a subscription/group
+    let state_c = state.clone();
+    let ui_weak = ui.as_weak();
+    ui.on_rename_profile(move |id, new_name| {
+        let storage = state_c.storage.clone();
+        let _ = storage.rename_subscription(id as i64, new_name.as_str());
+        let ui = ui_weak.upgrade().unwrap();
+        refresh_profiles_ui(&ui, &storage);
+        append_log(&ui, format!("[2con] Renamed profile {} to '{}'", id, new_name));
+    });
+
+    // Add a config (clipboard node) to a specific LocalGroup
+    let state_c = state.clone();
+    let ui_weak = ui.as_weak();
+    ui.on_add_config_to_group(move |sub_id| {
+        let storage = state_c.storage.clone();
+        let ui_weak_thread = ui_weak.clone();
+        tokio::spawn(async move {
+            let mock_node = "vless://99999999-9999-9999-9999-999999999999@1.1.1.1:443?type=ws&security=tls&path=%2F2con&sni=twocon.net#Local-Config";
+            if let Ok(mut profile) = crate::subscription::parser::parse_proxy_uri(mock_node) {
+                profile.sub_id = Some(sub_id as i64);
+                let _ = storage.add_profile(&profile);
+            }
+            let _ = slint::invoke_from_event_loop(move || {
+                if let Some(ui) = ui_weak_thread.upgrade() {
+                    refresh_profiles_ui(&ui, &storage);
+                    refresh_proxies_ui(&ui, &storage);
+                    append_log(&ui, format!("[2con] Added config to local group ID: {}", sub_id));
+                }
+            });
+        });
     });
 }
 

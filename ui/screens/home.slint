@@ -2,7 +2,7 @@ import { Theme } from "../components/theme.slint";
 import { Icons, Icon, IconButton } from "../components/icons.slint";
 
 export component HomeScreen inherits Rectangle {
-    in property <string> connection-status: "Disconnected";
+    in property <string> connection_status: "disconnected";
     in property <string> active-profile: "No Profile Selected";
     in property <string> routing-mode: "Bypass LAN & China";
     in property <string> download-speed: "0 KB/s";
@@ -58,64 +58,77 @@ export component HomeScreen inherits Rectangle {
             alignment: center;
             spacing: Theme.gap-lg;
 
-            // Connection Toggle Button
+            // Connection Toggle Button (Neon Gradient Border + DropShadow Glow)
             HorizontalLayout {
                 alignment: center;
                 Rectangle {
                     width: 140px;
                     height: 140px;
                     border-radius: 70px;
-                    background: is-connected ? Theme.success.with-alpha(0.12) : (is-connecting ? Theme.warning.with-alpha(0.12) : Theme.surface);
-                    border-color: is-connected ? Theme.success : (is-connecting ? Theme.warning : Theme.elevated);
-                    border-width: 3px;
+                    background: @linear-gradient(135deg, Theme.accent-purple 0%, Theme.accent-magenta 100%);
+                    
+                    // Neon Glow DropShadow
+                    drop-shadow-color: root.connection_status == "connected" ? Theme.accent-cyan.with-alpha(0.25) : (root.connection_status == "timeout" ? Theme.error-red.with-alpha(0.35) : Theme.accent-purple.with-alpha(0.2));
+                    drop-shadow-offset-x: 0;
+                    drop-shadow-offset-y: 4px;
+                    drop-shadow-blur: 14px;
                     
                     TouchArea {
                         clicked => { root.toggle-connection(); }
                     }
                     
-                    VerticalLayout {
-                        width: 100%;
-                        height: 100%;
-                        alignment: center;
-                        spacing: Theme.gap-md;
+                    Rectangle {
+                        x: 3px;
+                        y: 3px;
+                        width: 134px;
+                        height: 134px;
+                        border-radius: 67px;
+                        background: root.connection_status == "connected" ? rgba(0, 229, 255, 0.06) : Theme.background;
                         
-                        HorizontalLayout {
-                            alignment: center;
-                            Icon {
-                                icon-source: is-connected ? Icons.check : Icons.connect;
-                                icon-color: is-connected ? Theme.success : (is-connecting ? Theme.warning : Theme.text-primary);
-                                size: 36px;
-                            }
-                        }
-
                         VerticalLayout {
-                            spacing: 2px;
-                            Text {
-                                text: is-connected ? "Connected" : (is-connecting ? "Connecting..." : "Disconnected");
-                                color: Theme.text-primary;
-                                font-size: Theme.font-primary;
-                                font-weight: 700;
-                                horizontal-alignment: center;
+                            width: 100%;
+                            height: 100%;
+                            alignment: center;
+                            spacing: Theme.gap-md;
+                            
+                            HorizontalLayout {
+                                alignment: center;
+                                Icon {
+                                    icon-source: root.connection_status == "connected" ? Icons.check : Icons.connect;
+                                    icon-color: root.connection_status == "connected" ? Theme.accent-cyan : (root.connection_status == "timeout" ? Theme.error-red : Theme.text-primary);
+                                    size: 36px;
+                                }
                             }
-                            Text {
-                                text: is-connected ? "Tap to Stop" : "Tap to Start";
-                                color: Theme.text-secondary;
-                                font-size: Theme.font-metadata;
-                                horizontal-alignment: center;
+
+                            VerticalLayout {
+                                spacing: 2px;
+                                Text {
+                                    text: root.connection_status == "connected" ? "Connected" : (root.connection_status == "timeout" ? "Timeout" : (root.is-connecting ? "Connecting..." : "Disconnected"));
+                                    color: root.connection_status == "connected" ? Theme.accent-cyan : (root.connection_status == "timeout" ? Theme.error-red : Theme.text-primary);
+                                    font-size: Theme.font-primary;
+                                    font-weight: 700;
+                                    horizontal-alignment: center;
+                                }
+                                Text {
+                                    text: root.connection_status == "connected" ? "Tap to Stop" : "Tap to Start";
+                                    color: Theme.text-secondary;
+                                    font-size: Theme.font-metadata;
+                                    horizontal-alignment: center;
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // Clickable Quick-Select Pill (Routing Preset & Active Profile)
+            // Clickable Quick-Select Pill (Translucent overlay style)
             HorizontalLayout {
                 alignment: center;
                 Rectangle {
-                    background: Theme.surface;
-                    border-radius: Theme.card-radius;
+                    background: rgba(20, 10, 30, 0.55);
+                    border-radius: 14px;
                     border-width: 1px;
-                    border-color: Theme.elevated;
+                    border-color: rgba(255, 255, 255, 0.08);
                     height: 28px;
                     width: 260px;
                     
@@ -128,12 +141,12 @@ export component HomeScreen inherits Rectangle {
                         height: 100%;
                         alignment: center;
                         spacing: 8px;
-                        padding-left: 10px;
-                        padding-right: 10px;
+                        padding-left: 12px;
+                        padding-right: 12px;
                         
                         Text {
                             text: routing-mode;
-                            color: Theme.accent;
+                            color: Theme.accent-cyan;
                             font-size: Theme.font-metadata;
                             font-weight: 700;
                             vertical-alignment: center;
@@ -142,7 +155,7 @@ export component HomeScreen inherits Rectangle {
                         Rectangle {
                             width: 1px;
                             height: 10px;
-                            background: Theme.elevated;
+                            background: rgba(255, 255, 255, 0.1);
                         }
                         
                         Text {
@@ -164,6 +177,8 @@ export component HomeScreen inherits Rectangle {
         Rectangle {
             background: Theme.surface;
             border-radius: Theme.card-radius;
+            border-width: 1px;
+            border-color: Theme.border;
             height: 48px;
             
             HorizontalLayout {
@@ -178,7 +193,7 @@ export component HomeScreen inherits Rectangle {
                     
                     Icon {
                         icon-source: Icons.upload;
-                        icon-color: Theme.warning;
+                        icon-color: Theme.accent-magenta;
                         size: 14px;
                     }
                     
@@ -189,11 +204,13 @@ export component HomeScreen inherits Rectangle {
                             color: Theme.text-primary;
                             font-size: Theme.font-primary;
                             font-weight: 700;
+                            font-family: "monospace";
                         }
                         Text {
                             text: "Total: " + total-upload;
-                            color: Theme.text-muted;
+                            color: Theme.text-secondary;
                             font-size: Theme.font-metadata;
+                            font-family: "monospace";
                         }
                     }
                 }
@@ -204,7 +221,7 @@ export component HomeScreen inherits Rectangle {
                     Rectangle {
                         width: 1px;
                         height: 24px;
-                        background: Theme.elevated;
+                        background: Theme.border;
                     }
                 }
 
@@ -215,7 +232,7 @@ export component HomeScreen inherits Rectangle {
                     
                     Icon {
                         icon-source: Icons.download;
-                        icon-color: Theme.accent;
+                        icon-color: Theme.accent-cyan;
                         size: 14px;
                     }
                     
@@ -226,11 +243,13 @@ export component HomeScreen inherits Rectangle {
                             color: Theme.text-primary;
                             font-size: Theme.font-primary;
                             font-weight: 700;
+                            font-family: "monospace";
                         }
                         Text {
                             text: "Total: " + total-download;
-                            color: Theme.text-muted;
+                            color: Theme.text-secondary;
                             font-size: Theme.font-metadata;
+                            font-family: "monospace";
                         }
                     }
                 }
