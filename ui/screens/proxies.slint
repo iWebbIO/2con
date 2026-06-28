@@ -1,3 +1,6 @@
+import { Theme } from "../components/theme.slint";
+import { Icons, Icon, IconButton } from "../components/icons.slint";
+
 export struct ProxyUiItem {
     id: int,
     name: string,
@@ -11,11 +14,11 @@ export component ProxiesScreen inherits Rectangle {
     callback select-proxy(int);
     callback test-all-latency();
 
-    background: #171821;
+    background: Theme.background;
 
     VerticalLayout {
-        padding: 24px;
-        spacing: 16px;
+        padding: Theme.padding-screen;
+        spacing: Theme.gap-md;
 
         // Top actions / summary
         HorizontalLayout {
@@ -23,33 +26,23 @@ export component ProxiesScreen inherits Rectangle {
             
             Text {
                 text: "Select Outbound Proxy Node";
-                color: #ffffff;
+                color: Theme.text-primary;
                 font-size: 20px;
                 font-weight: 700;
             }
 
-            Rectangle {
-                background: #3182ce;
-                border-radius: 6px;
-                width: 130px;
+            IconButton {
+                icon-source: Icons.nav-proxies;
+                text: "Test Latencies";
+                background-color: Theme.accent;
+                hover-background-color: Theme.accent.brighter(10%);
+                active-background-color: Theme.accent.darker(15%);
+                width: 140px;
                 height: 32px;
-                
-                TouchArea {
-                    clicked => { root.test-all-latency(); }
-                    Text {
-                        text: "⚡ Test Latencies";
-                        color: #ffffff;
-                        font-size: 12px;
-                        font-weight: 600;
-                        vertical-alignment: center;
-                        horizontal-alignment: center;
-                    }
-                }
+                clicked => { root.test-all-latency(); }
             }
         }
 
-        // Search/Filter placeholder could go here
-        
         // Scrollable Grid/List of Proxies
         Flickable {
             viewport-height: (proxies.length + 1) / 2 * 65px;
@@ -57,20 +50,20 @@ export component ProxiesScreen inherits Rectangle {
             VerticalLayout {
                 spacing: 8px;
                 
-                // Representing proxies in a grid-like list layout
+                // Representing proxies in a list layout
                 for proxy[idx] in proxies : Rectangle {
                     height: 55px;
-                    background: proxy.is-active ? #2c313d : #21222d;
-                    border-radius: 8px;
-                    border-color: proxy.is-active ? #3182ce : transparent;
+                    background: proxy.is-active ? Theme.elevated : Theme.surface;
+                    border-radius: Theme.card-radius;
+                    border-color: proxy.is-active ? Theme.accent : transparent;
                     border-width: 1px;
                     
                     TouchArea {
                         clicked => { root.select-proxy(proxy.id); }
                         
                         HorizontalLayout {
-                            padding-left: 16px;
-                            padding-right: 16px;
+                            padding-left: Theme.card-padding;
+                            padding-right: Theme.card-padding;
                             spacing: 12px;
                             alignment: space-between;
                             
@@ -78,13 +71,15 @@ export component ProxiesScreen inherits Rectangle {
                                 spacing: 12px;
                                 alignment: start;
                                 
-                                // Protocol Indicator Dot
-                                Rectangle {
-                                    width: 8px;
-                                    height: 8px;
-                                    border-radius: 4px;
-                                    background: proxy.is-active ? #48bb78 : #a0aec0;
-                                    y: 23px;
+                                // Protocol Indicator Dot (Centered Vertically)
+                                VerticalLayout {
+                                    alignment: center;
+                                    Rectangle {
+                                        width: 8px;
+                                        height: 8px;
+                                        border-radius: 4px;
+                                        background: proxy.is-active ? Theme.success : Theme.text-secondary;
+                                    }
                                 }
 
                                 VerticalLayout {
@@ -92,37 +87,39 @@ export component ProxiesScreen inherits Rectangle {
                                     
                                     Text {
                                         text: proxy.name;
-                                        color: #ffffff;
+                                        color: Theme.text-primary;
                                         font-size: 14px;
                                         font-weight: 600;
                                     }
                                     
                                     Text {
                                         text: proxy.protocol;
-                                        color: #718096;
+                                        color: Theme.text-secondary;
                                         font-size: 11px;
                                     }
                                 }
                             }
 
-                            // Latency Speed display
-                            HorizontalLayout {
-                                alignment: end;
-                                y: 17px;
-                                
+                            // Latency Speed display (Centered Vertically)
+                            VerticalLayout {
+                                alignment: center;
                                 Rectangle {
-                                    background: proxy.delay == "" ? #2d3748 : (proxy.delay == "Timeout" ? #742a2a : #22543d);
+                                    background: proxy.delay == "" ? Theme.elevated : (proxy.delay == "Timeout" ? #742a2a : #22543d);
                                     border-radius: 4px;
-                                    padding-left: 8px;
-                                    padding-right: 8px;
                                     height: 22px;
                                     
-                                    Text {
-                                        text: proxy.delay == "" ? "Not Tested" : proxy.delay;
-                                        color: proxy.delay == "" ? #a0aec0 : (proxy.delay == "Timeout" ? #fed7d7 : #c6f6d5);
-                                        font-size: 11px;
-                                        font-weight: 700;
-                                        vertical-alignment: center;
+                                    HorizontalLayout {
+                                        padding-left: 8px;
+                                        padding-right: 8px;
+                                        alignment: center;
+                                        
+                                        Text {
+                                            text: proxy.delay == "" ? "Not Tested" : proxy.delay;
+                                            color: proxy.delay == "" ? Theme.text-secondary : (proxy.delay == "Timeout" ? #fed7d7 : #c6f6d5);
+                                            font-size: 11px;
+                                            font-weight: 700;
+                                            vertical-alignment: center;
+                                        }
                                     }
                                 }
                             }

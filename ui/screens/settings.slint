@@ -1,3 +1,6 @@
+import { Theme } from "../components/theme.slint";
+import { Icons, Icon, IconButton } from "../components/icons.slint";
+
 export component SettingsScreen inherits Rectangle {
     in-out property <string> core-type: "sing-box";
     in-out property <bool> system-proxy-enabled: false;
@@ -11,15 +14,15 @@ export component SettingsScreen inherits Rectangle {
     callback toggle-tun(bool);
     callback save-settings(string, string, string, string, string); // core, socks, http, dns, route_preset
 
-    background: #171821;
+    background: Theme.background;
 
     VerticalLayout {
-        padding: 24px;
-        spacing: 16px;
+        padding: Theme.padding-screen;
+        spacing: Theme.gap-md;
 
         Text {
             text: "Application Settings";
-            color: #ffffff;
+            color: Theme.text-primary;
             font-size: 20px;
             font-weight: 700;
         }
@@ -28,29 +31,29 @@ export component SettingsScreen inherits Rectangle {
             viewport-height: 520px;
 
             VerticalLayout {
-                spacing: 16px;
+                spacing: Theme.gap-md;
 
                 // Mode toggles
                 Rectangle {
-                    background: #21222d;
-                    border-radius: 12px;
-                    padding: 16px;
+                    background: Theme.surface;
+                    border-radius: Theme.card-radius;
                     
                     VerticalLayout {
+                        padding: Theme.card-padding;
                         spacing: 12px;
                         
-                        Text { text: "Network Integration"; color: #ffffff; font-size: 14px; font-weight: 600; }
+                        Text { text: "Network Integration"; color: Theme.text-primary; font-size: 14px; font-weight: 600; }
                         
                         // System Proxy Row
                         HorizontalLayout {
                             alignment: space-between;
-                            Text { text: "System Proxy (Redirect HTTP/SOCKS)"; color: #a0aec0; font-size: 13px; vertical-alignment: center; }
+                            Text { text: "System Proxy (Redirect HTTP/SOCKS)"; color: Theme.text-secondary; font-size: 13px; vertical-alignment: center; }
                             
                             // Toggle switch
                             Rectangle {
                                 width: 50px;
                                 height: 26px;
-                                background: root.system-proxy-enabled ? #48bb78 : #4a5568;
+                                background: root.system-proxy-enabled ? Theme.success : Theme.elevated;
                                 border-radius: 13px;
                                 
                                 TouchArea {
@@ -66,24 +69,23 @@ export component SettingsScreen inherits Rectangle {
                                         border-radius: 11px;
                                         x: root.system-proxy-enabled ? 26px : 2px;
                                         y: 2px;
-                                        // simple transition simulation
                                     }
                                 }
                             }
                         }
 
-                        Rectangle { height: 1px; background: #2d3748; }
+                        Rectangle { height: 1px; background: Theme.elevated; }
 
                         // TUN Mode Row
                         HorizontalLayout {
                             alignment: space-between;
-                            Text { text: "TUN Mode (Virtual Network Card)"; color: #a0aec0; font-size: 13px; vertical-alignment: center; }
+                            Text { text: "TUN Mode (Virtual Network Card)"; color: Theme.text-secondary; font-size: 13px; vertical-alignment: center; }
                             
                             // Toggle switch
                             Rectangle {
                                 width: 50px;
                                 height: 26px;
-                                background: root.tun-enabled ? #48bb78 : #4a5568;
+                                background: root.tun-enabled ? Theme.success : Theme.elevated;
                                 border-radius: 13px;
                                 
                                 TouchArea {
@@ -108,19 +110,19 @@ export component SettingsScreen inherits Rectangle {
 
                 // Core & Routing Group
                 Rectangle {
-                    background: #21222d;
-                    border-radius: 12px;
-                    padding: 16px;
+                    background: Theme.surface;
+                    border-radius: Theme.card-radius;
                     
                     VerticalLayout {
+                        padding: Theme.card-padding;
                         spacing: 12px;
                         
-                        Text { text: "Core Configuration"; color: #ffffff; font-size: 14px; font-weight: 600; }
+                        Text { text: "Core Configuration"; color: Theme.text-primary; font-size: 14px; font-weight: 600; }
                         
                         // Core Select (xray / sing-box)
                         HorizontalLayout {
                             alignment: space-between;
-                            Text { text: "Core Engine Selection"; color: #a0aec0; font-size: 13px; vertical-alignment: center; }
+                            Text { text: "Core Engine Selection"; color: Theme.text-secondary; font-size: 13px; vertical-alignment: center; }
                             
                             HorizontalLayout {
                                 spacing: 8px;
@@ -128,7 +130,7 @@ export component SettingsScreen inherits Rectangle {
                                 Rectangle {
                                     width: 80px;
                                     height: 28px;
-                                    background: root.core-type == "xray" ? #3182ce : #2d3748;
+                                    background: root.core-type == "xray" ? Theme.accent : Theme.elevated;
                                     border-radius: 4px;
                                     TouchArea {
                                         clicked => { root.core-type = "xray"; }
@@ -139,7 +141,7 @@ export component SettingsScreen inherits Rectangle {
                                 Rectangle {
                                     width: 80px;
                                     height: 28px;
-                                    background: root.core-type == "sing-box" ? #3182ce : #2d3748;
+                                    background: root.core-type == "sing-box" ? Theme.accent : Theme.elevated;
                                     border-radius: 4px;
                                     TouchArea {
                                         clicked => { root.core-type = "sing-box"; }
@@ -149,12 +151,12 @@ export component SettingsScreen inherits Rectangle {
                             }
                         }
 
-                        Rectangle { height: 1px; background: #2d3748; }
+                        Rectangle { height: 1px; background: Theme.elevated; }
 
                         // Routing Preset Select (Bypass LAN / Global / Custom)
                         HorizontalLayout {
                             alignment: space-between;
-                            Text { text: "Routing Mode"; color: #a0aec0; font-size: 13px; vertical-alignment: center; }
+                            Text { text: "Routing Mode"; color: Theme.text-secondary; font-size: 13px; vertical-alignment: center; }
                             
                             HorizontalLayout {
                                 spacing: 8px;
@@ -162,7 +164,7 @@ export component SettingsScreen inherits Rectangle {
                                 Rectangle {
                                     width: 100px;
                                     height: 28px;
-                                    background: root.routing-preset == "Bypass LAN & China" ? #3182ce : #2d3748;
+                                    background: root.routing-preset == "Bypass LAN & China" ? Theme.accent : Theme.elevated;
                                     border-radius: 4px;
                                     TouchArea {
                                         clicked => { root.routing-preset = "Bypass LAN & China"; }
@@ -173,7 +175,7 @@ export component SettingsScreen inherits Rectangle {
                                 Rectangle {
                                     width: 70px;
                                     height: 28px;
-                                    background: root.routing-preset == "Global" ? #3182ce : #2d3748;
+                                    background: root.routing-preset == "Global" ? Theme.accent : Theme.elevated;
                                     border-radius: 4px;
                                     TouchArea {
                                         clicked => { root.routing-preset = "Global"; }
@@ -187,14 +189,14 @@ export component SettingsScreen inherits Rectangle {
 
                 // Inbounds Details
                 Rectangle {
-                    background: #21222d;
-                    border-radius: 12px;
-                    padding: 16px;
+                    background: Theme.surface;
+                    border-radius: Theme.card-radius;
                     
                     VerticalLayout {
+                        padding: Theme.card-padding;
                         spacing: 12px;
                         
-                        Text { text: "Ports & DNS Settings"; color: #ffffff; font-size: 14px; font-weight: 600; }
+                        Text { text: "Ports & DNS Settings"; color: Theme.text-primary; font-size: 14px; font-weight: 600; }
                         
                         HorizontalLayout {
                             spacing: 12px;
@@ -202,70 +204,61 @@ export component SettingsScreen inherits Rectangle {
                             // Socks port
                             VerticalLayout {
                                 spacing: 4px;
-                                Text { text: "SOCKS Port"; color: #a0aec0; font-size: 11px; }
+                                Text { text: "SOCKS Port"; color: Theme.text-secondary; font-size: 11px; }
                                 SocksInput := TextInput {
                                     text: root.socks-port;
-                                    color: #ffffff;
+                                    color: Theme.text-primary;
                                     font-size: 13px;
                                     single-line: true;
                                 }
-                                Rectangle { height: 1px; background: #4a5568; }
+                                Rectangle { height: 1px; background: Theme.elevated; }
                             }
 
                             // Http port
                             VerticalLayout {
                                 spacing: 4px;
-                                Text { text: "HTTP Port"; color: #a0aec0; font-size: 11px; }
+                                Text { text: "HTTP Port"; color: Theme.text-secondary; font-size: 11px; }
                                 HttpInput := TextInput {
                                     text: root.http-port;
-                                    color: #ffffff;
+                                    color: Theme.text-primary;
                                     font-size: 13px;
                                     single-line: true;
                                 }
-                                Rectangle { height: 1px; background: #4a5568; }
+                                Rectangle { height: 1px; background: Theme.elevated; }
                             }
                         }
 
                         // DNS Server input
                         VerticalLayout {
                             spacing: 4px;
-                            Text { text: "Primary DNS Server"; color: #a0aec0; font-size: 11px; }
+                            Text { text: "Primary DNS Server"; color: Theme.text-secondary; font-size: 11px; }
                             DnsInput := TextInput {
                                 text: root.dns-server;
-                                color: #ffffff;
+                                color: Theme.text-primary;
                                 font-size: 13px;
                                 single-line: true;
                             }
-                            Rectangle { height: 1px; background: #4a5568; }
+                            Rectangle { height: 1px; background: Theme.elevated; }
                         }
                     }
                 }
 
                 // Save actions
-                Rectangle {
-                    background: #3182ce;
-                    border-radius: 8px;
+                IconButton {
+                    icon-source: Icons.save;
+                    text: "Save Configurations";
+                    background-color: Theme.accent;
+                    hover-background-color: Theme.accent.brighter(10%);
+                    active-background-color: Theme.accent.darker(15%);
                     height: 40px;
-                    
-                    TouchArea {
-                        clicked => {
-                            // parse port numbers and save
-                            root.save-settings(
-                                root.core-type,
-                                SocksInput.text,
-                                HttpInput.text,
-                                DnsInput.text,
-                                root.routing-preset
-                            );
-                        }
-                        Text {
-                            text: "💾 Save Configurations";
-                            color: #ffffff;
-                            font-size: 14px;
-                            font-weight: 700;
-                            vertical-alignment: center;
-                            horizontal-alignment: center;
-                        }
+                    clicked => {
+                        root.save-settings(
+                            root.core-type,
+                            SocksInput.text,
+                            HttpInput.text,
+                            DnsInput.text,
+                            root.routing-preset
+                        );
                     }
                 }
             }

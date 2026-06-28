@@ -1,3 +1,6 @@
+import { Theme } from "../components/theme.slint";
+import { Icons, Icon } from "../components/icons.slint";
+
 export component HomeScreen inherits Rectangle {
     in property <string> connection-status: "Disconnected";
     in property <string> active-profile: "No Profile Selected";
@@ -10,21 +13,21 @@ export component HomeScreen inherits Rectangle {
     
     callback toggle-connection();
 
-    background: #171821;
+    background: Theme.background;
 
     VerticalLayout {
-        padding: 24px;
-        spacing: 24px;
+        padding: Theme.padding-screen;
+        spacing: Theme.gap-lg;
 
         // Top Info Bar
         Rectangle {
-            background: #21222d;
-            border-radius: 12px;
+            background: Theme.surface;
+            border-radius: Theme.card-radius;
             height: 60px;
             
             HorizontalLayout {
-                padding-left: 16px;
-                padding-right: 16px;
+                padding-left: Theme.card-padding;
+                padding-right: Theme.card-padding;
                 alignment: space-between;
                 
                 // Active Profile Info
@@ -34,13 +37,13 @@ export component HomeScreen inherits Rectangle {
                     
                     Text {
                         text: "Profile:";
-                        color: #a0aec0;
+                        color: Theme.text-secondary;
                         font-size: 14px;
                         vertical-alignment: center;
                     }
                     Text {
                         text: active-profile;
-                        color: #ffffff;
+                        color: Theme.text-primary;
                         font-size: 14px;
                         font-weight: 600;
                         vertical-alignment: center;
@@ -54,7 +57,7 @@ export component HomeScreen inherits Rectangle {
                     
                     Text {
                         text: is-connected ? "System Proxy Active" : "Proxy Inactive";
-                        color: is-connected ? #48bb78 : #a0aec0;
+                        color: is-connected ? Theme.success : Theme.text-secondary;
                         font-size: 12px;
                         vertical-alignment: center;
                     }
@@ -65,14 +68,14 @@ export component HomeScreen inherits Rectangle {
         // Circular Connect Button Section
         VerticalLayout {
             alignment: center;
-            spacing: 16px;
+            spacing: Theme.gap-md;
             
             Rectangle {
                 width: 180px;
                 height: 180px;
                 background: is-connected ? #0f3d30 : (is-connecting ? #3d300f : #2c1a24);
                 border-radius: 90px;
-                border-color: is-connected ? #48bb78 : (is-connecting ? #ecc94b : #e53e3e);
+                border-color: is-connected ? Theme.success : (is-connecting ? Theme.warning : Theme.danger);
                 border-width: 4px;
                 
                 // Connect/Disconnect inner button action
@@ -88,13 +91,12 @@ export component HomeScreen inherits Rectangle {
                             width: 40px;
                             height: 40px;
                             border-radius: 20px;
-                            background: is-connected ? #48bb78 : (is-connecting ? #ecc94b : #e53e3e);
+                            background: is-connected ? Theme.success : (is-connecting ? Theme.warning : Theme.danger);
                             
-                            Text {
-                                text: is-connected ? "✔" : "⚡";
-                                color: #171821;
-                                font-size: 18px;
-                                font-weight: 800;
+                            Icon {
+                                icon-source: is-connected ? Icons.check : Icons.connect;
+                                icon-color: Theme.background;
+                                size: 24px;
                                 x: (parent.width - self.width) / 2;
                                 y: (parent.height - self.height) / 2;
                             }
@@ -102,7 +104,7 @@ export component HomeScreen inherits Rectangle {
 
                         Text {
                             text: is-connected ? "Connected" : (is-connecting ? "Connecting..." : "Tap to Connect");
-                            color: #ffffff;
+                            color: Theme.text-primary;
                             font-size: 16px;
                             font-weight: 700;
                             horizontal-alignment: center;
@@ -110,7 +112,7 @@ export component HomeScreen inherits Rectangle {
 
                         Text {
                             text: is-connected ? "Click to Disconnect" : "Core Stopped";
-                            color: #a0aec0;
+                            color: Theme.text-secondary;
                             font-size: 11px;
                             horizontal-alignment: center;
                         }
@@ -121,32 +123,36 @@ export component HomeScreen inherits Rectangle {
 
         // Traffic Stats Panel
         HorizontalLayout {
-            spacing: 16px;
+            spacing: Theme.gap-md;
             height: 100px;
             
             // Downlink Card
             Rectangle {
-                background: #21222d;
-                border-radius: 12px;
-                padding: 12px;
+                background: Theme.surface;
+                border-radius: Theme.card-radius;
                 
                 VerticalLayout {
+                    padding: Theme.card-padding;
                     alignment: space-around;
                     
                     HorizontalLayout {
                         spacing: 8px;
-                        Text { text: "↓"; color: #4299e1; font-size: 18px; font-weight: 900; }
-                        Text { text: "Download Speed"; color: #a0aec0; font-size: 12px; }
+                        Icon {
+                            icon-source: Icons.download;
+                            icon-color: Theme.accent;
+                            size: 18px;
+                        }
+                        Text { text: "Download Speed"; color: Theme.text-secondary; font-size: 12px; }
                     }
                     Text {
                         text: download-speed;
-                        color: #ffffff;
+                        color: Theme.text-primary;
                         font-size: 20px;
                         font-weight: 700;
                     }
                     Text {
                         text: "Total: " + total-download;
-                        color: #718096;
+                        color: Theme.text-muted;
                         font-size: 11px;
                     }
                 }
@@ -154,27 +160,31 @@ export component HomeScreen inherits Rectangle {
 
             // Uplink Card
             Rectangle {
-                background: #21222d;
-                border-radius: 12px;
-                padding: 12px;
+                background: Theme.surface;
+                border-radius: Theme.card-radius;
                 
                 VerticalLayout {
+                    padding: Theme.card-padding;
                     alignment: space-around;
                     
                     HorizontalLayout {
                         spacing: 8px;
-                        Text { text: "↑"; color: #ecc94b; font-size: 18px; font-weight: 900; }
-                        Text { text: "Upload Speed"; color: #a0aec0; font-size: 12px; }
+                        Icon {
+                            icon-source: Icons.upload;
+                            icon-color: Theme.warning;
+                            size: 18px;
+                        }
+                        Text { text: "Upload Speed"; color: Theme.text-secondary; font-size: 12px; }
                     }
                     Text {
                         text: upload-speed;
-                        color: #ffffff;
+                        color: Theme.text-primary;
                         font-size: 20px;
                         font-weight: 700;
                     }
                     Text {
                         text: "Total: " + total-upload;
-                        color: #718096;
+                        color: Theme.text-muted;
                         font-size: 11px;
                     }
                 }

@@ -1,24 +1,31 @@
+import { Theme } from "../components/theme.slint";
+import { Icons, Icon } from "../components/icons.slint";
+
 export component AboutScreen inherits Rectangle {
-    background: #171821;
+    background: Theme.background;
 
     VerticalLayout {
-        padding: 24px;
-        spacing: 24px;
+        padding: Theme.padding-screen;
+        spacing: Theme.gap-lg;
         alignment: center;
 
-        Rectangle {
-            width: 80px;
-            height: 80px;
-            background: #3182ce;
-            border-radius: 40px;
-            
-            Text {
-                text: "2C";
-                color: #ffffff;
-                font-size: 32px;
-                font-weight: 800;
-                x: (parent.width - self.width) / 2;
-                y: (parent.height - self.height) / 2;
+        // Logo / Icon
+        HorizontalLayout {
+            alignment: center;
+            Rectangle {
+                width: 80px;
+                height: 80px;
+                background: Theme.accent;
+                border-radius: 40px;
+                
+                Text {
+                    text: "2C";
+                    color: #ffffff;
+                    font-size: 32px;
+                    font-weight: 800;
+                    x: (parent.width - self.width) / 2;
+                    y: (parent.height - self.height) / 2;
+                }
             }
         }
 
@@ -29,7 +36,7 @@ export component AboutScreen inherits Rectangle {
 
             Text {
                 text: "2con Desktop Client";
-                color: #ffffff;
+                color: Theme.text-primary;
                 font-size: 22px;
                 font-weight: 700;
                 horizontal-alignment: center;
@@ -37,52 +44,54 @@ export component AboutScreen inherits Rectangle {
 
             Text {
                 text: "Version 1.0.0 (Rust + Slint)";
-                color: #a0aec0;
+                color: Theme.text-secondary;
                 font-size: 14px;
                 horizontal-alignment: center;
             }
 
             Text {
                 text: "A premium proxy manager powered by xray-core & sing-box";
-                color: #718096;
+                color: Theme.text-muted;
                 font-size: 12px;
                 horizontal-alignment: center;
             }
         }
 
         // Links / Credits Card
-        Rectangle {
-            background: #21222d;
-            border-radius: 12px;
-            width: 320px;
-            height: 120px;
-            x: (parent.width - self.width) / 2; // center horizontally
+        HorizontalLayout {
+            alignment: center;
+            Rectangle {
+                background: Theme.surface;
+                border-radius: Theme.card-radius;
+                width: 320px;
+                height: 120px;
 
-            VerticalLayout {
-                padding: 16px;
-                spacing: 12px;
-                alignment: center;
+                VerticalLayout {
+                    padding: Theme.card-padding;
+                    spacing: 12px;
+                    alignment: center;
 
-                Text {
-                    text: "License: MIT License";
-                    color: #e2e8f0;
-                    font-size: 12px;
-                    horizontal-alignment: center;
-                }
+                    Text {
+                        text: "License: MIT License";
+                        color: Theme.text-primary;
+                        font-size: 12px;
+                        horizontal-alignment: center;
+                    }
 
-                Text {
-                    text: "Frameworks: Slint UI & Tokio Async Engine";
-                    color: #e2e8f0;
-                    font-size: 12px;
-                    horizontal-alignment: center;
-                }
+                    Text {
+                        text: "Frameworks: Slint UI & Tokio Async Engine";
+                        color: Theme.text-primary;
+                        font-size: 12px;
+                        horizontal-alignment: center;
+                    }
 
-                Text {
-                    text: "GitHub: github.com/iWebbIO/2con";
-                    color: #3182ce;
-                    font-size: 12px;
-                    font-weight: 600;
-                    horizontal-alignment: center;
+                    Text {
+                        text: "GitHub: github.com/iWebbIO/2con";
+                        color: Theme.accent;
+                        font-size: 12px;
+                        font-weight: 600;
+                        horizontal-alignment: center;
+                    }
                 }
             }
         }

@@ -4,6 +4,8 @@ import { ProxiesScreen, ProxyUiItem } from "screens/proxies.slint";
 import { SettingsScreen } from "screens/settings.slint";
 import { LogsScreen } from "screens/logs.slint";
 import { AboutScreen } from "screens/about.slint";
+import { Theme } from "components/theme.slint";
+import { Icons, Icon, IconButton } from "components/icons.slint";
 
 export { ProfileUiItem, ProxyUiItem }
 
@@ -11,7 +13,7 @@ export component AppWindow inherits Window {
     title: "2con Desktop Proxy Client";
     width: 900px;
     height: 620px;
-    background: #171821;
+    background: Theme.background;
 
     // Global Properties
     in-out property <int> active-page-index: 0;
@@ -62,29 +64,31 @@ export component AppWindow inherits Window {
         // Navigation Rail (Left Side)
         Rectangle {
             width: 80px;
-            background: #21222d;
+            background: Theme.surface;
             
             VerticalLayout {
-                padding-top: 24px;
-                padding-bottom: 24px;
-                spacing: 20px;
+                padding-top: Theme.padding-screen;
+                padding-bottom: Theme.padding-screen;
+                spacing: Theme.nav-spacing;
                 alignment: start;
 
                 // Brand Icon
-                Rectangle {
-                    width: 44px;
-                    height: 44px;
-                    border-radius: 22px;
-                    background: #3182ce;
-                    x: (parent.width - self.width) / 2;
-                    
-                    Text {
-                        text: "2C";
-                        color: #ffffff;
-                        font-size: 16px;
-                        font-weight: 900;
-                        vertical-alignment: center;
-                        horizontal-alignment: center;
+                HorizontalLayout {
+                    alignment: center;
+                    Rectangle {
+                        width: 44px;
+                        height: 44px;
+                        border-radius: 22px;
+                        background: Theme.accent;
+                        
+                        Text {
+                            text: "2C";
+                            color: #ffffff;
+                            font-size: 16px;
+                            font-weight: 900;
+                            x: (parent.width - self.width) / 2;
+                            y: (parent.height - self.height) / 2;
+                        }
                     }
                 }
 
@@ -93,146 +97,164 @@ export component AppWindow inherits Window {
                 // Home Nav Item
                 VerticalLayout {
                     spacing: 4px;
-                    Rectangle {
-                        width: 50px;
-                        height: 50px;
-                        border-radius: 10px;
-                        background: root.active-page-index == 0 ? #2d3748 : transparent;
-                        x: (parent.width - self.width) / 2;
-                        
-                        TouchArea {
-                            clicked => { root.active-page-index = 0; }
-                            Text {
-                                text: "🏠";
-                                font-size: 20px;
-                                vertical-alignment: center;
-                                horizontal-alignment: center;
+                    HorizontalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 50px;
+                            height: 50px;
+                            border-radius: 10px;
+                            background: root.active-page-index == 0 ? Theme.elevated : transparent;
+                            
+                            TouchArea {
+                                clicked => { root.active-page-index = 0; }
+                                Icon {
+                                    icon-source: Icons.nav-home;
+                                    icon-color: root.active-page-index == 0 ? Theme.text-primary : Theme.text-secondary;
+                                    size: 24px;
+                                    x: (parent.width - self.width) / 2;
+                                    y: (parent.height - self.height) / 2;
+                                }
                             }
                         }
                     }
-                    Text { text: "Home"; color: root.active-page-index == 0 ? #ffffff : #a0aec0; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
+                    Text { text: "Home"; color: root.active-page-index == 0 ? Theme.text-primary : Theme.text-secondary; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
                 }
 
                 // Profiles Nav Item
                 VerticalLayout {
                     spacing: 4px;
-                    Rectangle {
-                        width: 50px;
-                        height: 50px;
-                        border-radius: 10px;
-                        background: root.active-page-index == 1 ? #2d3748 : transparent;
-                        x: (parent.width - self.width) / 2;
-                        
-                        TouchArea {
-                            clicked => { root.active-page-index = 1; }
-                            Text {
-                                text: "📂";
-                                font-size: 20px;
-                                vertical-alignment: center;
-                                horizontal-alignment: center;
+                    HorizontalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 50px;
+                            height: 50px;
+                            border-radius: 10px;
+                            background: root.active-page-index == 1 ? Theme.elevated : transparent;
+                            
+                            TouchArea {
+                                clicked => { root.active-page-index = 1; }
+                                Icon {
+                                    icon-source: Icons.nav-profiles;
+                                    icon-color: root.active-page-index == 1 ? Theme.text-primary : Theme.text-secondary;
+                                    size: 24px;
+                                    x: (parent.width - self.width) / 2;
+                                    y: (parent.height - self.height) / 2;
+                                }
                             }
                         }
                     }
-                    Text { text: "Profiles"; color: root.active-page-index == 1 ? #ffffff : #a0aec0; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
+                    Text { text: "Profiles"; color: root.active-page-index == 1 ? Theme.text-primary : Theme.text-secondary; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
                 }
 
                 // Proxies Nav Item
                 VerticalLayout {
                     spacing: 4px;
-                    Rectangle {
-                        width: 50px;
-                        height: 50px;
-                        border-radius: 10px;
-                        background: root.active-page-index == 2 ? #2d3748 : transparent;
-                        x: (parent.width - self.width) / 2;
-                        
-                        TouchArea {
-                            clicked => { root.active-page-index = 2; }
-                            Text {
-                                text: "⚡";
-                                font-size: 20px;
-                                vertical-alignment: center;
-                                horizontal-alignment: center;
+                    HorizontalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 50px;
+                            height: 50px;
+                            border-radius: 10px;
+                            background: root.active-page-index == 2 ? Theme.elevated : transparent;
+                            
+                            TouchArea {
+                                clicked => { root.active-page-index = 2; }
+                                Icon {
+                                    icon-source: Icons.nav-proxies;
+                                    icon-color: root.active-page-index == 2 ? Theme.text-primary : Theme.text-secondary;
+                                    size: 24px;
+                                    x: (parent.width - self.width) / 2;
+                                    y: (parent.height - self.height) / 2;
+                                }
                             }
                         }
                     }
-                    Text { text: "Proxies"; color: root.active-page-index == 2 ? #ffffff : #a0aec0; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
+                    Text { text: "Proxies"; color: root.active-page-index == 2 ? Theme.text-primary : Theme.text-secondary; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
                 }
 
                 // Settings Nav Item
                 VerticalLayout {
                     spacing: 4px;
-                    Rectangle {
-                        width: 50px;
-                        height: 50px;
-                        border-radius: 10px;
-                        background: root.active-page-index == 3 ? #2d3748 : transparent;
-                        x: (parent.width - self.width) / 2;
-                        
-                        TouchArea {
-                            clicked => { root.active-page-index = 3; }
-                            Text {
-                                text: "⚙";
-                                font-size: 20px;
-                                vertical-alignment: center;
-                                horizontal-alignment: center;
+                    HorizontalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 50px;
+                            height: 50px;
+                            border-radius: 10px;
+                            background: root.active-page-index == 3 ? Theme.elevated : transparent;
+                            
+                            TouchArea {
+                                clicked => { root.active-page-index = 3; }
+                                Icon {
+                                    icon-source: Icons.nav-settings;
+                                    icon-color: root.active-page-index == 3 ? Theme.text-primary : Theme.text-secondary;
+                                    size: 24px;
+                                    x: (parent.width - self.width) / 2;
+                                    y: (parent.height - self.height) / 2;
+                                }
                             }
                         }
                     }
-                    Text { text: "Settings"; color: root.active-page-index == 3 ? #ffffff : #a0aec0; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
+                    Text { text: "Settings"; color: root.active-page-index == 3 ? Theme.text-primary : Theme.text-secondary; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
                 }
 
                 // Logs Nav Item
                 VerticalLayout {
                     spacing: 4px;
-                    Rectangle {
-                        width: 50px;
-                        height: 50px;
-                        border-radius: 10px;
-                        background: root.active-page-index == 4 ? #2d3748 : transparent;
-                        x: (parent.width - self.width) / 2;
-                        
-                        TouchArea {
-                            clicked => { root.active-page-index = 4; }
-                            Text {
-                                text: "📋";
-                                font-size: 20px;
-                                vertical-alignment: center;
-                                horizontal-alignment: center;
+                    HorizontalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 50px;
+                            height: 50px;
+                            border-radius: 10px;
+                            background: root.active-page-index == 4 ? Theme.elevated : transparent;
+                            
+                            TouchArea {
+                                clicked => { root.active-page-index = 4; }
+                                Icon {
+                                    icon-source: Icons.nav-logs;
+                                    icon-color: root.active-page-index == 4 ? Theme.text-primary : Theme.text-secondary;
+                                    size: 24px;
+                                    x: (parent.width - self.width) / 2;
+                                    y: (parent.height - self.height) / 2;
+                                }
                             }
                         }
                     }
-                    Text { text: "Logs"; color: root.active-page-index == 4 ? #ffffff : #a0aec0; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
+                    Text { text: "Logs"; color: root.active-page-index == 4 ? Theme.text-primary : Theme.text-secondary; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
                 }
 
                 // About Nav Item
                 VerticalLayout {
                     spacing: 4px;
-                    Rectangle {
-                        width: 50px;
-                        height: 50px;
-                        border-radius: 10px;
-                        background: root.active-page-index == 5 ? #2d3748 : transparent;
-                        x: (parent.width - self.width) / 2;
-                        
-                        TouchArea {
-                            clicked => { root.active-page-index = 5; }
-                            Text {
-                                text: "ℹ";
-                                font-size: 20px;
-                                vertical-alignment: center;
-                                horizontal-alignment: center;
+                    HorizontalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 50px;
+                            height: 50px;
+                            border-radius: 10px;
+                            background: root.active-page-index == 5 ? Theme.elevated : transparent;
+                            
+                            TouchArea {
+                                clicked => { root.active-page-index = 5; }
+                                Icon {
+                                    icon-source: Icons.nav-about;
+                                    icon-color: root.active-page-index == 5 ? Theme.text-primary : Theme.text-secondary;
+                                    size: 24px;
+                                    x: (parent.width - self.width) / 2;
+                                    y: (parent.height - self.height) / 2;
+                                }
                             }
                         }
                     }
-                    Text { text: "About"; color: root.active-page-index == 5 ? #ffffff : #a0aec0; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
+                    Text { text: "About"; color: root.active-page-index == 5 ? Theme.text-primary : Theme.text-secondary; font-size: 10px; font-weight: 600; horizontal-alignment: center; }
                 }
             }
         }
 
         // Screen Content (Switched based on active-page-index)
         Rectangle {
-            background: #171821;
+            background: Theme.background;
             
             if root.active-page-index == 0 : HomeScreen {
                 connection-status: root.connection-status;

@@ -1,0 +1,80 @@
+export global Icons {
+    in-out property <image> nav-home: @image-url("../images/nav-home.svg");
+    in-out property <image> nav-profiles: @image-url("../images/nav-profiles.svg");
+    in-out property <image> nav-proxies: @image-url("../images/nav-proxies.svg");
+    in-out property <image> nav-settings: @image-url("../images/nav-settings.svg");
+    in-out property <image> nav-logs: @image-url("../images/nav-logs.svg");
+    in-out property <image> nav-about: @image-url("../images/nav-about.svg");
+    
+    in-out property <image> check: @image-url("../images/check.svg");
+    in-out property <image> connect: @image-url("../images/connect.svg");
+    in-out property <image> download: @image-url("../images/download.svg");
+    in-out property <image> upload: @image-url("../images/upload.svg");
+    
+    in-out property <image> clipboard: @image-url("../images/clipboard.svg");
+    in-out property <image> fetch: @image-url("../images/fetch.svg");
+    in-out property <image> delete: @image-url("../images/delete.svg");
+    in-out property <image> save: @image-url("../images/save.svg");
+}
+
+export component Icon inherits Rectangle {
+    in property <image> icon-source;
+    in property <color> icon-color: #ffffff;
+    in property <length> size: 24px;
+    
+    width: size;
+    height: size;
+    background: transparent;
+    
+    Image {
+        source: icon-source;
+        colorize: icon-color;
+        width: 100%;
+        height: 100%;
+        image-fit: contain;
+    }
+}
+
+export component IconButton inherits Rectangle {
+    in property <image> icon-source;
+    in property <color> icon-color: #ffffff;
+    in property <string> text: "";
+    in property <color> text-color: #ffffff;
+    in property <length> icon-size: 16px;
+    in property <color> background-color: #2d3748;
+    in property <color> hover-background-color: #3e4d68;
+    in property <color> active-background-color: #1a202c;
+    in property <bool> has-icon: true;
+    
+    callback clicked;
+    
+    background: ta.pressed ? active-background-color : (ta.has-hover ? hover-background-color : background-color);
+    border-radius: 6px;
+    
+    ta := TouchArea {
+        clicked => { root.clicked(); }
+        
+        HorizontalLayout {
+            alignment: center;
+            spacing: 8px;
+            padding-left: 12px;
+            padding-right: 12px;
+            
+            if has-icon : Image {
+                source: icon-source;
+                colorize: icon-color;
+                width: icon-size;
+                height: icon-size;
+                vertical-alignment: center;
+                image-fit: contain;
+            }
+            if text != "" : Text {
+                text: text;
+                color: text-color;
+                font-size: 12px;
+                font-weight: 600;
+                vertical-alignment: center;
+            }
+        }
+    }
+}

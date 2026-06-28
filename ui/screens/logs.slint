@@ -1,12 +1,15 @@
+import { Theme } from "../components/theme.slint";
+import { Icons, Icon, IconButton } from "../components/icons.slint";
+
 export component LogsScreen inherits Rectangle {
     in property <[string]> logs: [];
     callback clear-logs();
 
-    background: #171821;
+    background: Theme.background;
 
     VerticalLayout {
-        padding: 24px;
-        spacing: 16px;
+        padding: Theme.padding-screen;
+        spacing: Theme.gap-md;
 
         // Title and Actions
         HorizontalLayout {
@@ -14,49 +17,41 @@ export component LogsScreen inherits Rectangle {
             
             Text {
                 text: "Real-time Logs";
-                color: #ffffff;
+                color: Theme.text-primary;
                 font-size: 20px;
                 font-weight: 700;
             }
 
-            Rectangle {
-                background: #e53e3e;
-                border-radius: 6px;
-                width: 100px;
+            IconButton {
+                icon-source: Icons.delete;
+                text: "Clear Logs";
+                background-color: Theme.danger;
+                hover-background-color: Theme.danger.brighter(10%);
+                active-background-color: Theme.danger.darker(15%);
+                width: 120px;
                 height: 32px;
-                
-                TouchArea {
-                    clicked => { root.clear-logs(); }
-                    Text {
-                        text: "🗑 Clear Logs";
-                        color: #ffffff;
-                        font-size: 12px;
-                        font-weight: 600;
-                        vertical-alignment: center;
-                        horizontal-alignment: center;
-                    }
-                }
+                clicked => { root.clear-logs(); }
             }
         }
 
         // Terminal Console Area
         Rectangle {
             background: #0f1015;
-            border-radius: 8px;
+            border-radius: Theme.card-radius;
             border-width: 1px;
-            border-color: #2d3748;
+            border-color: Theme.elevated;
             
             Flickable {
                 viewport-height: logs.length * 20px + 20px;
-                padding: 12px;
                 
                 VerticalLayout {
+                    padding: Theme.card-padding;
                     alignment: start;
                     spacing: 4px;
                     
                     for log-line[idx] in logs : Text {
                         text: log-line;
-                        color: #a0aec0;
+                        color: Theme.text-secondary;
                         font-family: "Courier New";
                         font-size: 12px;
                         wrap: word-wrap;
